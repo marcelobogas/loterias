@@ -40,7 +40,9 @@ class LotterySeeder extends Seeder
             ]
         );
 
-        $unitPrice = 3.00;
+        // Confirmed directly in the Caixa Loterias app (2026-07-10). Caixa
+        // changes this from time to time — re-check periodically.
+        $unitPrice = 3.50;
         $effectiveFrom = '2024-01-01';
 
         foreach (range(15, 20) as $numbersChosen) {

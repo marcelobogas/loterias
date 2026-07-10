@@ -25,6 +25,16 @@ class MyGames extends Component
             : 'Nenhum concurso novo para conferir ainda.';
     }
 
+    public function deleteGame(int $gameId): void
+    {
+        $game = auth()->user()->games()->where('lottery_id', $this->lottery->id)->findOrFail($gameId);
+
+        $game->delete();
+
+        $this->checkStatusMessage = 'Jogo excluído.';
+        $this->resetPage();
+    }
+
     public function render(LotteryCheckingService $checker)
     {
         $games = auth()->user()->games()

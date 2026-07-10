@@ -35,6 +35,6 @@ test('an authenticated user can generate and save games at the correct price', f
         ->assertSet('previewGames', []);
 
     expect(Game::where('user_id', $user->id)->count())->toBe(3)
-        ->and(Game::where('user_id', $user->id)->first()->price)->toBe('3.00')
+        ->and(Game::where('user_id', $user->id)->first()->price)->toBe('3.50')
         ->and(Game::where('user_id', $user->id)->first()->numbers()->count())->toBe(15);
 });
