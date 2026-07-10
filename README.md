@@ -43,3 +43,12 @@ php artisan test
 ./vendor/bin/pint
 ./vendor/bin/phpstan analyse
 ```
+
+## Versionamento e commits
+
+```bash
+php artisan version show             # versão atual e info do build
+scripts/git_flow.sh                  # stage interativo + bump de versão obrigatório + Pint + commit + push
+```
+
+Veja `docs/versioning.md` para a política de bump (patch/minor/major) e o workflow completo de release.
