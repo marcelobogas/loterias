@@ -6,17 +6,9 @@
             </p>
         @else
             <form wire:submit="sendResetLink" class="space-y-4">
-                <div>
-                    <label for="email" class="block text-sm font-medium text-slate-300">E-mail</label>
-                    <input wire:model="email" id="email" type="email" autofocus
-                        class="mt-1 w-full rounded-lg border-white/10 bg-slate-800 text-slate-100 focus:border-emerald-500 focus:ring-emerald-500">
-                    @error('email') <p class="mt-1 text-sm text-rose-400">{{ $message }}</p> @enderror
-                </div>
+                <x-ui.text-input name="email" label="E-mail" type="email" wire:model="email" autofocus />
 
-                <button type="submit" wire:loading.attr="disabled"
-                    class="w-full rounded-lg bg-emerald-500 px-4 py-2 font-medium text-slate-950 hover:bg-emerald-400 disabled:opacity-60">
-                    Enviar link
-                </button>
+                <x-ui.button type="submit" full>Enviar link</x-ui.button>
             </form>
         @endif
 

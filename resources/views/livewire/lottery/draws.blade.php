@@ -1,23 +1,9 @@
 <div class="space-y-6">
-    <div class="flex flex-wrap items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-semibold text-white">Resultados · {{ $lottery->name }}</h1>
-            <p class="text-sm text-slate-400">Histórico de concursos sincronizados.</p>
-        </div>
-
-        <nav class="flex flex-wrap gap-2 text-sm">
-            <a href="{{ route('lottery.dashboard', $lottery) }}" wire:navigate
-                class="rounded-lg px-3 py-1.5 text-slate-400 hover:bg-white/5 hover:text-white">Análises</a>
-            <a href="{{ route('lottery.generator', $lottery) }}" wire:navigate
-                class="rounded-lg px-3 py-1.5 text-slate-400 hover:bg-white/5 hover:text-white">Gerar jogos</a>
-            <a href="{{ route('lottery.draws', $lottery) }}" wire:navigate
-                class="rounded-lg bg-emerald-500/10 px-3 py-1.5 font-medium text-emerald-400">Resultados</a>
-            @auth
-                <a href="{{ route('lottery.my-games', $lottery) }}" wire:navigate
-                    class="rounded-lg px-3 py-1.5 text-slate-400 hover:bg-white/5 hover:text-white">Meus jogos</a>
-            @endauth
-        </nav>
-    </div>
+    <x-ui.page-header title="{{ 'Resultados · '.$lottery->name }}" subtitle="Histórico de concursos sincronizados.">
+        <x-slot:actions>
+            <x-ui.lottery-nav :lottery="$lottery" active="draws" />
+        </x-slot:actions>
+    </x-ui.page-header>
 
     <input wire:model.live.debounce.400ms="search" type="search" placeholder="Buscar por número do concurso..."
         class="w-full max-w-sm rounded-lg border-white/10 bg-slate-800 text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500">

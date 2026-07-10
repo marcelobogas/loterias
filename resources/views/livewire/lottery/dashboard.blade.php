@@ -1,23 +1,9 @@
 <div class="space-y-6">
-    <div class="flex flex-wrap items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-semibold text-white">{{ $lottery->name }}</h1>
-            <p class="text-sm text-slate-400">{{ $drawsCount }} concurso(s) no histórico.</p>
-        </div>
-
-        <nav class="flex flex-wrap gap-2 text-sm">
-            <a href="{{ route('lottery.dashboard', $lottery) }}" wire:navigate
-                class="rounded-lg bg-emerald-500/10 px-3 py-1.5 font-medium text-emerald-400">Análises</a>
-            <a href="{{ route('lottery.generator', $lottery) }}" wire:navigate
-                class="rounded-lg px-3 py-1.5 text-slate-400 hover:bg-white/5 hover:text-white">Gerar jogos</a>
-            <a href="{{ route('lottery.draws', $lottery) }}" wire:navigate
-                class="rounded-lg px-3 py-1.5 text-slate-400 hover:bg-white/5 hover:text-white">Resultados</a>
-            @auth
-                <a href="{{ route('lottery.my-games', $lottery) }}" wire:navigate
-                    class="rounded-lg px-3 py-1.5 text-slate-400 hover:bg-white/5 hover:text-white">Meus jogos</a>
-            @endauth
-        </nav>
-    </div>
+    <x-ui.page-header :title="$lottery->name" :subtitle="$drawsCount.' concurso(s) no histórico.'">
+        <x-slot:actions>
+            <x-ui.lottery-nav :lottery="$lottery" active="dashboard" />
+        </x-slot:actions>
+    </x-ui.page-header>
 
     @if ($latestDraw)
         <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">

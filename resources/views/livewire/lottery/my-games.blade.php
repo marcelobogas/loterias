@@ -1,19 +1,12 @@
 <div class="space-y-6">
-    <div class="flex flex-wrap items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-semibold text-white">Meus jogos · {{ $lottery->name }}</h1>
-            <p class="text-sm text-slate-400">Histórico dos seus jogos salvos e conferência automática.</p>
-        </div>
-
-        <nav class="flex flex-wrap gap-2 text-sm">
-            <a href="{{ route('lottery.dashboard', $lottery) }}" wire:navigate class="rounded-lg px-3 py-1.5 text-slate-400 hover:bg-white/5 hover:text-white">Análises</a>
-            <a href="{{ route('lottery.generator', $lottery) }}" wire:navigate class="rounded-lg px-3 py-1.5 text-slate-400 hover:bg-white/5 hover:text-white">Gerar jogos</a>
-            <a href="{{ route('lottery.my-games', $lottery) }}" wire:navigate class="rounded-lg bg-emerald-500/10 px-3 py-1.5 font-medium text-emerald-400">Meus jogos</a>
-        </nav>
-    </div>
+    <x-ui.page-header title="{{ 'Meus jogos · '.$lottery->name }}" subtitle="Histórico dos seus jogos salvos e conferência automática.">
+        <x-slot:actions>
+            <x-ui.lottery-nav :lottery="$lottery" active="my-games" />
+        </x-slot:actions>
+    </x-ui.page-header>
 
     @if ($checkStatusMessage)
-        <div class="rounded-lg bg-emerald-500/10 px-4 py-2 text-sm text-emerald-400">{{ $checkStatusMessage }}</div>
+        <x-ui.status-banner>{{ $checkStatusMessage }}</x-ui.status-banner>
     @endif
 
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
@@ -22,10 +15,7 @@
         <x-ui.stat-card label="Saldo" value="R$ {{ number_format($roi['net'], 2, ',', '.') }}" :tone="$roi['net'] >= 0 ? 'positive' : 'negative'" />
     </div>
 
-    <button type="button" wire:click="checkNow" wire:loading.attr="disabled"
-        class="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-emerald-400 disabled:opacity-60">
-        Conferir agora
-    </button>
+    <x-ui.button wire:click="checkNow" size="sm">Conferir agora</x-ui.button>
 
     <div class="space-y-3">
         @forelse ($games as $game)

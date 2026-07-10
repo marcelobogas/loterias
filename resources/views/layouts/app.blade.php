@@ -40,6 +40,7 @@
     </main>
 
     <x-ui.responsible-gaming-banner />
+    <x-ui.back-to-top />
 
     @livewireScripts
 </body>

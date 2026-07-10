@@ -1,14 +1,12 @@
 <div class="space-y-6">
-    <div class="flex flex-wrap items-center justify-between gap-4">
-        <div>
-            <h1 class="text-2xl font-semibold text-white">{{ $lottery->name }} · Concurso #{{ $draw->contest_number }}</h1>
-            <p class="text-sm text-slate-400">{{ $draw->draw_date->format('d/m/Y') }} @if ($draw->location) · {{ $draw->location }} @endif</p>
-        </div>
-
-        <a href="{{ route('lottery.draws', $lottery) }}" wire:navigate class="text-sm text-slate-400 hover:text-white">
-            &larr; Voltar aos resultados
-        </a>
-    </div>
+    <x-ui.page-header title="{{ $lottery->name.' · Concurso #'.$draw->contest_number }}">
+        <x-slot:subtitle>{{ $draw->draw_date->format('d/m/Y') }} @if ($draw->location) · {{ $draw->location }} @endif</x-slot:subtitle>
+        <x-slot:actions>
+            <a href="{{ route('lottery.draws', $lottery) }}" wire:navigate class="text-sm text-slate-400 hover:text-white">
+                &larr; Voltar aos resultados
+            </a>
+        </x-slot:actions>
+    </x-ui.page-header>
 
     <x-ui.panel-card title="Dezenas sorteadas">
         <div class="flex flex-wrap gap-2">
