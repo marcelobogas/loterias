@@ -4,4 +4,7 @@
         site organizam dados históricos e ajudam a estruturar apostas, mas não garantem prêmios. Jogue com
         responsabilidade — se sentir que perdeu o controle sobre o quanto joga, procure ajuda.
     </div>
+    <div class="border-t border-white/5 py-2 text-center text-[11px] text-slate-600">
+        Loterias v{{ app(\App\Services\VersionService::class)->current() }}
+    </div>
 </footer>
