@@ -5,7 +5,7 @@
             <p class="text-sm text-slate-400">Histórico dos seus jogos salvos e conferência automática.</p>
         </div>
 
-        <nav class="flex gap-2 text-sm">
+        <nav class="flex flex-wrap gap-2 text-sm">
             <a href="{{ route('lottery.dashboard', $lottery) }}" wire:navigate class="rounded-lg px-3 py-1.5 text-slate-400 hover:bg-white/5 hover:text-white">Análises</a>
             <a href="{{ route('lottery.generator', $lottery) }}" wire:navigate class="rounded-lg px-3 py-1.5 text-slate-400 hover:bg-white/5 hover:text-white">Gerar jogos</a>
             <a href="{{ route('lottery.my-games', $lottery) }}" wire:navigate class="rounded-lg bg-emerald-500/10 px-3 py-1.5 font-medium text-emerald-400">Meus jogos</a>
@@ -16,7 +16,7 @@
         <div class="rounded-lg bg-emerald-500/10 px-4 py-2 text-sm text-emerald-400">{{ $checkStatusMessage }}</div>
     @endif
 
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
         <x-ui.stat-card label="Total gasto" value="R$ {{ number_format($roi['spent'], 2, ',', '.') }}" />
         <x-ui.stat-card label="Total ganho" value="R$ {{ number_format($roi['won'], 2, ',', '.') }}" tone="positive" />
         <x-ui.stat-card label="Saldo" value="R$ {{ number_format($roi['net'], 2, ',', '.') }}" :tone="$roi['net'] >= 0 ? 'positive' : 'negative'" />

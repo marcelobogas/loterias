@@ -5,7 +5,7 @@
             <p class="text-sm text-slate-400">{{ $drawsCount }} concurso(s) no histórico.</p>
         </div>
 
-        <nav class="flex gap-2 text-sm">
+        <nav class="flex flex-wrap gap-2 text-sm">
             <a href="{{ route('lottery.dashboard', $lottery) }}" wire:navigate
                 class="rounded-lg bg-emerald-500/10 px-3 py-1.5 font-medium text-emerald-400">Análises</a>
             <a href="{{ route('lottery.generator', $lottery) }}" wire:navigate
@@ -20,7 +20,7 @@
     </div>
 
     @if ($latestDraw)
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-5">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <x-ui.stat-card label="Último concurso" value="#{{ $latestDraw->contest_number }}" :hint="$latestDraw->draw_date->format('d/m/Y')" />
             <x-ui.stat-card label="Próximo sorteio" value="{{ $latestDraw->next_draw_date?->format('d/m/Y') ?? '—' }}" :hint="$latestDraw->next_contest_number ? 'Concurso #'.$latestDraw->next_contest_number : null" />
             <x-ui.stat-card label="Acumulado" :value="$latestDraw->accumulated ? 'Sim' : 'Não'" :tone="$latestDraw->accumulated ? 'positive' : 'default'" />

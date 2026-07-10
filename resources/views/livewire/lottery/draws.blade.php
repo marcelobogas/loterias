@@ -5,7 +5,7 @@
             <p class="text-sm text-slate-400">Histórico de concursos sincronizados.</p>
         </div>
 
-        <nav class="flex gap-2 text-sm">
+        <nav class="flex flex-wrap gap-2 text-sm">
             <a href="{{ route('lottery.dashboard', $lottery) }}" wire:navigate
                 class="rounded-lg px-3 py-1.5 text-slate-400 hover:bg-white/5 hover:text-white">Análises</a>
             <a href="{{ route('lottery.generator', $lottery) }}" wire:navigate

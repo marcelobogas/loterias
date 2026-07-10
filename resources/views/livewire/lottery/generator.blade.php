@@ -5,7 +5,7 @@
             <p class="text-sm text-slate-400">Escolha uma estratégia e filtros; o preço segue a tabela oficial da Caixa.</p>
         </div>
 
-        <nav class="flex gap-2 text-sm">
+        <nav class="flex flex-wrap gap-2 text-sm">
             <a href="{{ route('lottery.dashboard', $lottery) }}" wire:navigate class="rounded-lg px-3 py-1.5 text-slate-400 hover:bg-white/5 hover:text-white">Análises</a>
             <a href="{{ route('lottery.generator', $lottery) }}" wire:navigate class="rounded-lg bg-emerald-500/10 px-3 py-1.5 font-medium text-emerald-400">Gerar jogos</a>
             <a href="{{ route('lottery.draws', $lottery) }}" wire:navigate class="rounded-lg px-3 py-1.5 text-slate-400 hover:bg-white/5 hover:text-white">Resultados</a>
