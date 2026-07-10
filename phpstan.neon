@@ -1,0 +1,19 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app/
+
+    phpVersion: 80500
+
+    # Level 0 is the loosest and level 9 is the strictest
+    level: 5
+
+    # Eloquent models expose many attributes/relations via magic methods whose
+    # PHPDoc types are not authoritative; trusting them produces false
+    # "always true"/"never null" reports. PHPStan recommends disabling this.
+    treatPhpDocTypesAsCertain: false
+
+    excludePaths:
+        - app/Providers/

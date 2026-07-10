@@ -1,0 +1,22 @@
+<?php
+
+return [
+
+    'base_url' => env('CAIXA_LOTTERY_BASE_URL', 'https://servicebus2.caixa.gov.br/portaldeloterias/api'),
+
+    'timeout' => (int) env('CAIXA_LOTTERY_TIMEOUT', 15),
+
+    'retries' => (int) env('CAIXA_LOTTERY_RETRIES', 3),
+
+    'retry_sleep_ms' => (int) env('CAIXA_LOTTERY_RETRY_SLEEP_MS', 300),
+
+    // Delay between sequential requests during backfill, to avoid hammering
+    // an undocumented, unrated third-party endpoint.
+    'backfill_sleep_ms' => (int) env('CAIXA_LOTTERY_BACKFILL_SLEEP_MS', 250),
+
+    'user_agent' => env(
+        'CAIXA_LOTTERY_USER_AGENT',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
+    ),
+
+];
