@@ -20,8 +20,9 @@
     </div>
 
     @if ($latestDraw)
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-5">
             <x-ui.stat-card label="Último concurso" value="#{{ $latestDraw->contest_number }}" :hint="$latestDraw->draw_date->format('d/m/Y')" />
+            <x-ui.stat-card label="Próximo sorteio" value="{{ $latestDraw->next_draw_date?->format('d/m/Y') ?? '—' }}" :hint="$latestDraw->next_contest_number ? 'Concurso #'.$latestDraw->next_contest_number : null" />
             <x-ui.stat-card label="Acumulado" :value="$latestDraw->accumulated ? 'Sim' : 'Não'" :tone="$latestDraw->accumulated ? 'positive' : 'default'" />
             <x-ui.stat-card label="Estimativa próximo concurso" value="{{ $latestDraw->estimated_next_prize ? 'R$ '.number_format($latestDraw->estimated_next_prize, 2, ',', '.') : '—' }}" />
             <x-ui.stat-card label="Local do sorteio" value="{{ $latestDraw->location ?? '—' }}" />
