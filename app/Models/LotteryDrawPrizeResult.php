@@ -21,6 +21,7 @@ class LotteryDrawPrizeResult extends Model
         return $this->belongsTo(LotteryDraw::class, 'lottery_draw_id');
     }
 
+    /** @return BelongsTo<LotteryPrizeTier, $this> */
     public function prizeTier(): BelongsTo
     {
         return $this->belongsTo(LotteryPrizeTier::class, 'lottery_prize_tier_id');

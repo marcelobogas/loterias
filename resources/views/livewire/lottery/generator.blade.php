@@ -85,11 +85,20 @@
                         hint="O sistema distribui esses números em jogos que cobrem o máximo de pares possível — não é uma garantia matemática formal." />
                 @endif
 
-                <div class="rounded-lg bg-white/5 px-3 py-2 text-sm">
-                    <span class="text-slate-400">Custo estimado do lote:</span>
-                    <span class="font-medium text-white">
-                        {{ $estimatedBatchPrice !== null ? 'R$ '.number_format($estimatedBatchPrice, 2, ',', '.') : '—' }}
-                    </span>
+                <div class="space-y-1 rounded-lg bg-white/5 px-3 py-2 text-sm">
+                    <div>
+                        <span class="text-slate-400">Custo estimado do lote:</span>
+                        <span class="font-medium text-white">
+                            {{ $estimatedBatchPrice !== null ? 'R$ '.number_format($estimatedBatchPrice, 2, ',', '.') : '—' }}
+                        </span>
+                    </div>
+                    @if ($expectedValue !== null && $pricePerGameEstimate = ($estimatedBatchPrice / max(1, $gamesCount)))
+                        <div title="Probabilidades exatas (hipergeométrica) × prêmios do histórico: faixas fixas pelo valor vigente, faixas rateadas (14/15) pela mediana dos concursos com ganhador. É uma média de longo prazo, não uma previsão.">
+                            <span class="text-slate-400">Retorno esperado por jogo:</span>
+                            <span class="font-medium text-white">R$ {{ number_format($expectedValue['expectedReturn'], 2, ',', '.') }}</span>
+                            <span class="text-xs text-slate-500">(≈{{ number_format($expectedValue['expectedReturn'] / $pricePerGameEstimate * 100, 0) }}% do custo)</span>
+                        </div>
+                    @endif
                 </div>
 
                 <x-ui.button wire:click="generate" full>Gerar jogos</x-ui.button>

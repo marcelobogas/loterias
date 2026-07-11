@@ -3,6 +3,9 @@
 use App\Contracts\LotteryResultsProviderContract;
 use App\DataTransferObjects\DrawData;
 use App\DataTransferObjects\DrawPrizeResultData;
+use App\Models\Lottery;
+use App\Models\LotteryDraw;
+use App\Models\LotteryDrawPrizeResult;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -47,6 +50,41 @@ expect()->extend('toBeOne', function () {
 | global functions to help you to reduce the number of lines of code in your test files.
 |
 */
+
+/**
+ * @param  int[]  $numbers
+ * @param  array<int, array{int, float}>  $prizeResults  tier hits => [winners_count, prize_amount]
+ */
+function seedDrawWithNumbers(Lottery $lottery, int $contest, array $numbers, array $prizeResults = []): LotteryDraw
+{
+    $draw = LotteryDraw::create([
+        'lottery_id' => $lottery->id,
+        'contest_number' => $contest,
+        'draw_date' => now()->subDays(30 - $contest),
+        'source' => 'api',
+    ]);
+
+    $draw->numbers()->insert(
+        collect($numbers)->map(fn (int $number) => [
+            'lottery_draw_id' => $draw->id,
+            'lottery_id' => $lottery->id,
+            'number' => $number,
+        ])->all()
+    );
+
+    foreach ($prizeResults as $hits => [$winners, $amount]) {
+        $tier = $lottery->prizeTiers()->where('hits', $hits)->firstOrFail();
+
+        LotteryDrawPrizeResult::create([
+            'lottery_draw_id' => $draw->id,
+            'lottery_prize_tier_id' => $tier->id,
+            'winners_count' => $winners,
+            'prize_amount' => $amount,
+        ]);
+    }
+
+    return $draw;
+}
 
 function makeFakeDraw(int $contestNumber): DrawData
 {

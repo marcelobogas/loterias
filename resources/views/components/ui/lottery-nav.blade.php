@@ -7,6 +7,7 @@
     $tabs = [
         'dashboard' => ['label' => 'Análises', 'route' => route('lottery.dashboard', $lottery)],
         'generator' => ['label' => 'Gerar jogos', 'route' => route('lottery.generator', $lottery)],
+        'backtest' => ['label' => 'Simulador', 'route' => route('lottery.backtest', $lottery)],
         'draws' => ['label' => 'Resultados', 'route' => route('lottery.draws', $lottery)],
     ];
 

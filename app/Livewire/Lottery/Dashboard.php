@@ -64,6 +64,7 @@ class Dashboard extends Component
             'latestDraw' => $this->lottery->latestDraw(),
             'drawsCount' => $this->lottery->draws()->count(),
             'frequency' => $frequency,
+            'randomness' => $stats->frequencyRandomnessTest($this->lottery, $window),
             'delay' => $stats->delayTable($this->lottery),
             'sumDistribution' => $stats->sumDistribution($this->lottery, $window),
             'parityDistribution' => $stats->parityDistribution($this->lottery, $window),

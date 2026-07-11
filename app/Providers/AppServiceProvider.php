@@ -10,6 +10,7 @@ use App\Services\Lottery\Strategies\BalancedFilterStrategy;
 use App\Services\Lottery\Strategies\HotColdStrategy;
 use App\Services\Lottery\Strategies\RandomStrategy;
 use App\Services\Lottery\Strategies\ReducedWheelHeuristicStrategy;
+use App\Services\Lottery\Strategies\UnpopularNumbersStrategy;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -27,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
                     $app->make(RandomStrategy::class),
                     $app->make(HotColdStrategy::class),
                     $app->make(BalancedFilterStrategy::class),
+                    $app->make(UnpopularNumbersStrategy::class),
                     $app->make(ReducedWheelHeuristicStrategy::class),
                 ],
                 pricing: $app->make(LotteryPricingService::class),

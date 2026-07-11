@@ -23,6 +23,10 @@ use Illuminate\Support\Facades\DB;
  */
 class LotteryStatisticsService
 {
+    public function __construct(
+        private readonly LotteryMathService $math,
+    ) {}
+
     /**
      * @return Collection<int, int> number => times drawn
      */
@@ -174,6 +178,46 @@ class LotteryStatisticsService
                 ])
                 ->all();
         }));
+    }
+
+    /**
+     * Chi-square goodness-of-fit of the observed number frequencies against
+     * a uniform draw. Because each contest draws exactly K of N numbers
+     * WITHOUT replacement, per-number counts have variance E·(N−K)/(N−1)
+     * instead of the multinomial ≈E, so the raw Σ(O−E)²/E is rescaled by
+     * (N−1)/(N−K) to be ~χ² with N−1 degrees of freedom. Without this
+     * correction every window would look "too uniform" (p ≈ 1) and the
+     * test would be meaningless.
+     *
+     * @return array{chiSquare: float, degreesOfFreedom: int, pValue: float, draws: int}|null
+     *                                                                                        null when there are no draws to test.
+     */
+    public function frequencyRandomnessTest(Lottery $lottery, ?int $window = null): ?array
+    {
+        $result = Cache::remember($this->cacheKey($lottery, 'randomness', $window), now()->addDay(), function () use ($lottery, $window) {
+            $frequency = $this->frequencyTable($lottery, $window);
+            $universe = (int) $lottery->universe_size;
+            $drawnPerContest = (int) $lottery->numbers_drawn;
+            $draws = (int) ($frequency->sum() / max(1, $drawnPerContest));
+
+            if ($draws === 0) {
+                return [];
+            }
+
+            $expected = $draws * $drawnPerContest / $universe;
+            $rawStatistic = $frequency->sum(fn (int $observed) => ($observed - $expected) ** 2 / $expected);
+            $chiSquare = $rawStatistic * ($universe - 1) / ($universe - $drawnPerContest);
+            $degreesOfFreedom = $universe - 1;
+
+            return [
+                'chiSquare' => round($chiSquare, 2),
+                'degreesOfFreedom' => $degreesOfFreedom,
+                'pValue' => round($this->math->chiSquarePValue($chiSquare, $degreesOfFreedom), 4),
+                'draws' => $draws,
+            ];
+        });
+
+        return $result === [] ? null : $result;
     }
 
     /**

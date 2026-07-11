@@ -93,6 +93,25 @@
         </x-ui.panel-card>
     </div>
 
+    @if ($randomness)
+        <x-ui.panel-card title="Aleatoriedade & padrões" subtitle="Teste qui-quadrado da frequência observada contra um sorteio uniforme, na janela selecionada">
+            @php $consistent = $randomness['pValue'] >= 0.05; @endphp
+            <div class="flex flex-wrap items-center gap-4">
+                <span class="rounded-lg px-3 py-1.5 text-sm font-medium {{ $consistent ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400' }}">
+                    {{ $consistent ? 'Consistente com sorteio uniforme' : 'Desvio estatístico nesta janela' }}
+                </span>
+                <span class="text-sm text-slate-400">χ² = {{ number_format($randomness['chiSquare'], 2, ',', '.') }} · {{ $randomness['degreesOfFreedom'] }} graus de liberdade · p-valor {{ $randomness['pValue'] < 0.0001 ? '< 0,0001' : '= '.number_format($randomness['pValue'], 4, ',', '.') }} · {{ $randomness['draws'] }} concurso(s)</span>
+            </div>
+            <p class="mt-3 text-xs text-slate-500">
+                @if ($consistent)
+                    As diferenças de frequência entre as dezenas (números "quentes" e "frios") estão dentro do esperado para um sorteio puramente aleatório — são ruído estatístico, não padrão. Nenhuma dezena está "devendo" sair.
+                @else
+                    O desvio nesta janela é maior que o usual, mas atenção: olhando várias janelas, algumas vão apresentar p-valor baixo por puro acaso (1 em 20 para p &lt; 0,05). Isso não indica dezenas previsíveis.
+                @endif
+            </p>
+        </x-ui.panel-card>
+    @endif
+
     <x-ui.panel-card title="Pares mais frequentes" subtitle="Dezenas que mais saíram juntas na janela selecionada">
         <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
             @foreach ($topPairs as $pair)

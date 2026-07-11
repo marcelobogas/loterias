@@ -2,27 +2,8 @@
 
 use App\Livewire\Lottery\Dashboard;
 use App\Models\Lottery;
-use App\Models\LotteryDraw;
 use Database\Seeders\LotterySeeder;
 use Livewire\Livewire;
-
-function seedDrawWithNumbers(Lottery $lottery, int $contest, array $numbers): void
-{
-    $draw = LotteryDraw::create([
-        'lottery_id' => $lottery->id,
-        'contest_number' => $contest,
-        'draw_date' => now()->subDays(30 - $contest),
-        'source' => 'api',
-    ]);
-
-    $draw->numbers()->insert(
-        collect($numbers)->map(fn (int $number) => [
-            'lottery_draw_id' => $draw->id,
-            'lottery_id' => $lottery->id,
-            'number' => $number,
-        ])->all()
-    );
-}
 
 test('frequency defaults to numeric order', function () {
     $this->seed(LotterySeeder::class);
@@ -58,4 +39,34 @@ test('frequency can be sorted by highest and lowest occurrence', function () {
 
     expect($asc->values()->first())->toBe(0)
         ->and($asc->values()->last())->toBe(2);
+});
+
+test('a perfectly balanced history reads as consistent with a uniform draw', function () {
+    $this->seed(LotterySeeder::class);
+    $lottery = Lottery::where('slug', 'lotofacil')->firstOrFail();
+
+    // Five cyclic windows of 15 numbers, starts spaced by 5: every number
+    // from 1 to 25 appears exactly 3 times, so χ² is exactly zero.
+    foreach ([0, 5, 10, 15, 20] as $index => $start) {
+        seedDrawWithNumbers($lottery, $index + 1, collect(range(0, 14))
+            ->map(fn (int $offset) => ($start + $offset) % 25 + 1)
+            ->sort()->values()->all());
+    }
+
+    Livewire::test(Dashboard::class, ['lottery' => $lottery])
+        ->assertViewHas('randomness', fn ($randomness) => $randomness['chiSquare'] === 0.0 && $randomness['pValue'] === 1.0)
+        ->assertSee('Consistente com sorteio uniforme');
+});
+
+test('a heavily skewed history is flagged as a statistical deviation', function () {
+    $this->seed(LotterySeeder::class);
+    $lottery = Lottery::where('slug', 'lotofacil')->firstOrFail();
+
+    foreach (range(1, 10) as $contest) {
+        seedDrawWithNumbers($lottery, $contest, range(1, 15));
+    }
+
+    Livewire::test(Dashboard::class, ['lottery' => $lottery])
+        ->assertViewHas('randomness', fn ($randomness) => $randomness['pValue'] < 0.05)
+        ->assertSee('Desvio estatístico nesta janela');
 });

@@ -48,6 +48,7 @@ class LotteryDraw extends Model
         return $this->hasMany(LotteryDrawNumber::class);
     }
 
+    /** @return HasMany<LotteryDrawPrizeResult, $this> */
     public function prizeResults(): HasMany
     {
         return $this->hasMany(LotteryDrawPrizeResult::class);

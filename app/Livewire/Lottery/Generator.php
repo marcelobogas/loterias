@@ -7,6 +7,7 @@ use App\DataTransferObjects\GameGenerationRequest;
 use App\Livewire\Concerns\WithLotteryContext;
 use App\Models\Lottery;
 use App\Services\Lottery\LotteryGameGeneratorService;
+use App\Services\Lottery\LotteryMathService;
 use App\Services\Lottery\LotteryPricingService;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
@@ -148,11 +149,14 @@ class Generator extends Component
             ->all();
     }
 
-    public function render(LotteryGameGeneratorService $generator, LotteryPricingService $pricing)
+    public function render(LotteryGameGeneratorService $generator, LotteryPricingService $pricing, LotteryMathService $math)
     {
+        $estimatedBatchPrice = $this->estimatedPrice($pricing);
+
         return view('livewire.lottery.generator', [
             'strategyDetails' => $this->strategyDetails($generator),
-            'estimatedBatchPrice' => $this->estimatedPrice($pricing),
+            'estimatedBatchPrice' => $estimatedBatchPrice,
+            'expectedValue' => $estimatedBatchPrice !== null ? $math->expectedValue($this->lottery, $this->numbersPerGame) : null,
         ]);
     }
 }

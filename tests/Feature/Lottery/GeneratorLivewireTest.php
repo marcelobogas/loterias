@@ -95,6 +95,46 @@ test('clearGames wipes the preview without saving anything', function () {
     expect(Game::count())->toBe(0);
 });
 
+test('the generator shows the expected return per game when there is prize history', function () {
+    $this->seed(LotterySeeder::class);
+    $lottery = Lottery::where('slug', 'lotofacil')->firstOrFail();
+
+    seedDrawWithNumbers($lottery, 1, range(1, 15), [
+        11 => [100000, 7.0],
+        12 => [10000, 14.0],
+        13 => [1000, 35.0],
+        14 => [100, 1500.0],
+        15 => [1, 1000000.0],
+    ]);
+
+    Livewire::test(Generator::class, ['lottery' => $lottery])
+        ->assertSee('Retorno esperado por jogo');
+});
+
+test('the generator omits the expected return without prize history', function () {
+    $this->seed(LotterySeeder::class);
+    $lottery = Lottery::where('slug', 'lotofacil')->firstOrFail();
+
+    Livewire::test(Generator::class, ['lottery' => $lottery])
+        ->assertDontSee('Retorno esperado por jogo');
+});
+
+test('the unpopular strategy generates valid games from the generator', function () {
+    $this->seed(LotterySeeder::class);
+    $lottery = Lottery::where('slug', 'lotofacil')->firstOrFail();
+
+    $component = Livewire::test(Generator::class, ['lottery' => $lottery])
+        ->set('strategy', 'unpopular')
+        ->set('gamesCount', 2)
+        ->call('generate')
+        ->assertSet('previewGames', fn ($games) => count($games) === 2);
+
+    foreach ($component->get('previewGames') as $numbers) {
+        expect($numbers)->toHaveCount(15)
+            ->and(count(array_unique($numbers)))->toBe(15);
+    }
+});
+
 test('the balanced strategy preview shows each game sum within the requested range', function () {
     $this->seed(LotterySeeder::class);
     $lottery = Lottery::where('slug', 'lotofacil')->firstOrFail();
