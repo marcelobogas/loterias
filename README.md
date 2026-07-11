@@ -34,7 +34,13 @@ php artisan lottery:backfill lotofacil       # carrega o histórico completo de 
 php artisan lottery:import-csv lotofacil arquivo.csv  # fallback manual (colunas: concurso,data,dezenas)
 ```
 
-O `lottery:sync` já está agendado (`routes/console.php`) para rodar de hora em hora na janela real de sorteio da Lotofácil (18h–22h, seg–sáb), e dispara a conferência automática dos jogos salvos assim que sincroniza um concurso novo.
+O `lottery:sync` já está agendado (`routes/console.php`) para rodar de hora em hora na janela real de publicação do resultado da Lotofácil (20h–23h59 de Brasília, seg–sáb, mais um safety net diário às 9h), e dispara a conferência automática dos jogos salvos assim que sincroniza um concurso novo.
+
+Para o agendamento funcionar é preciso manter o scheduler do Laravel rodando:
+
+```bash
+php artisan schedule:work   # em dev; em produção use este comando sob supervisor, ou um cron chamando schedule:run a cada minuto
+```
 
 ## Testes e qualidade
 

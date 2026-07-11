@@ -16,6 +16,9 @@ class Dashboard extends Component
     #[Url]
     public string $window = '50';
 
+    #[Url]
+    public string $frequencySort = 'numeric';
+
     /**
      * @return array<int|string, string>
      */
@@ -30,6 +33,18 @@ class Dashboard extends Component
         ];
     }
 
+    /**
+     * @return array<string, string>
+     */
+    public function frequencySortOptions(): array
+    {
+        return [
+            'numeric' => 'Ordem numérica',
+            'desc' => 'Maiores saídas',
+            'asc' => 'Menores saídas',
+        ];
+    }
+
     private function windowValue(): ?int
     {
         return $this->window === 'all' ? null : (int) $this->window;
@@ -39,10 +54,16 @@ class Dashboard extends Component
     {
         $window = $this->windowValue();
 
+        $frequency = match ($this->frequencySort) {
+            'desc' => $stats->frequencyTable($this->lottery, $window)->sortDesc(),
+            'asc' => $stats->frequencyTable($this->lottery, $window)->sort(),
+            default => $stats->frequencyTable($this->lottery, $window),
+        };
+
         return view('livewire.lottery.dashboard', [
             'latestDraw' => $this->lottery->latestDraw(),
             'drawsCount' => $this->lottery->draws()->count(),
-            'frequency' => $stats->frequencyTable($this->lottery, $window),
+            'frequency' => $frequency,
             'delay' => $stats->delayTable($this->lottery),
             'sumDistribution' => $stats->sumDistribution($this->lottery, $window),
             'parityDistribution' => $stats->parityDistribution($this->lottery, $window),

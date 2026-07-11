@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(composer test *)",
+      "Bash(php artisan tinker '--execute= *)"
+    ]
+  }
+}

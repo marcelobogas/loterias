@@ -50,17 +50,20 @@ class Generator extends Component
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, array{label: string, description: string}>
      */
-    public function strategyOptions(LotteryGameGeneratorService $generator): array
+    public function strategyDetails(LotteryGameGeneratorService $generator): array
     {
-        $options = [];
+        $details = [];
 
         foreach ($generator->availableStrategies() as $key => $strategy) {
-            $options[$key] = $strategy->label();
+            $details[$key] = [
+                'label' => $strategy->label(),
+                'description' => $strategy->description(),
+            ];
         }
 
-        return $options;
+        return $details;
     }
 
     private function estimatedPrice(LotteryPricingService $pricing): ?float
@@ -102,6 +105,14 @@ class Generator extends Component
         $this->totalPrice = $result->totalPrice;
     }
 
+    public function clearGames(): void
+    {
+        $this->previewGames = [];
+        $this->pricePerGame = null;
+        $this->totalPrice = null;
+        $this->statusMessage = null;
+    }
+
     public function save(SaveGameAction $action): void
     {
         if (! auth()->check()) {
@@ -114,7 +125,12 @@ class Generator extends Component
             return;
         }
 
-        $action->execute(auth()->user(), $this->lottery, $this->previewGames, $this->strategy, $this->pricePerGame);
+        // Resolved at save time (not mount) so a long-lived component still
+        // targets the contest that is actually open when the user saves.
+        $latestDraw = $this->lottery->latestDraw();
+        $forContest = $latestDraw ? ($latestDraw->next_contest_number ?? $latestDraw->contest_number + 1) : null;
+
+        $action->execute(auth()->user(), $this->lottery, $this->previewGames, $this->strategy, $this->pricePerGame, $forContest);
 
         $this->previewGames = [];
         $this->statusMessage = 'Jogos salvos com sucesso!';
@@ -135,7 +151,7 @@ class Generator extends Component
     public function render(LotteryGameGeneratorService $generator, LotteryPricingService $pricing)
     {
         return view('livewire.lottery.generator', [
-            'strategyOptions' => $this->strategyOptions($generator),
+            'strategyDetails' => $this->strategyDetails($generator),
             'estimatedBatchPrice' => $this->estimatedPrice($pricing),
         ]);
     }

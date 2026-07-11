@@ -14,11 +14,11 @@ class SaveGameAction
      * @param  array<int, int[]>  $games
      * @return Collection<int, Game>
      */
-    public function execute(User $user, Lottery $lottery, array $games, string $strategy, float $pricePerGame): Collection
+    public function execute(User $user, Lottery $lottery, array $games, string $strategy, float $pricePerGame, ?int $forContestNumber = null): Collection
     {
         $batchId = (string) Str::uuid();
 
-        return collect($games)->map(function (array $numbers) use ($user, $lottery, $strategy, $pricePerGame, $batchId) {
+        return collect($games)->map(function (array $numbers) use ($user, $lottery, $strategy, $pricePerGame, $batchId, $forContestNumber) {
             $game = Game::create([
                 'user_id' => $user->id,
                 'lottery_id' => $lottery->id,
@@ -26,6 +26,7 @@ class SaveGameAction
                 'price' => $pricePerGame,
                 'strategy' => $strategy,
                 'generation_batch_id' => $batchId,
+                'for_contest_number' => $forContestNumber,
             ]);
 
             $game->numbers()->insert(

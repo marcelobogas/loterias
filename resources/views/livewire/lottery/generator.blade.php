@@ -19,11 +19,49 @@
                 <x-ui.text-input name="gamesCount" label="Quantidade de jogos" type="number"
                     wire:model.live="gamesCount" min="1" max="20" />
 
-                <x-ui.select-input name="strategy" label="Estratégia" wire:model.live="strategy">
-                    @foreach ($strategyOptions as $key => $label)
-                        <option value="{{ $key }}">{{ $label }}</option>
-                    @endforeach
-                </x-ui.select-input>
+                <div x-data="{ strategyInfoOpen: false }">
+                    <x-ui.select-input name="strategy" label="Estratégia" wire:model.live="strategy">
+                        @foreach ($strategyDetails as $key => $details)
+                            <option value="{{ $key }}">{{ $details['label'] }}</option>
+                        @endforeach
+                    </x-ui.select-input>
+
+                    <p class="mt-1.5 text-xs text-slate-500">
+                        {{ $strategyDetails[$strategy]['description'] ?? '' }}
+                        <button type="button" @click="strategyInfoOpen = true" class="font-medium text-emerald-500 hover:text-emerald-400">Comparar estratégias</button>
+                    </p>
+
+                    <div x-show="strategyInfoOpen" x-cloak
+                        class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+                        x-transition:leave="transition ease-in duration-100" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
+                        <div class="absolute inset-0 bg-slate-950/70" @click="strategyInfoOpen = false"></div>
+
+                        <div class="relative w-full max-w-lg rounded-2xl border border-white/10 bg-slate-900 p-5 shadow-xl"
+                            x-trap="strategyInfoOpen" @keydown.escape.window="strategyInfoOpen = false">
+                            <div class="mb-4 flex items-start justify-between gap-4">
+                                <div>
+                                    <h3 class="text-base font-semibold text-white">Estratégias de geração</h3>
+                                    <p class="mt-0.5 text-sm text-slate-400">Nenhuma delas muda a probabilidade de acerto — cada sorteio é independente. Elas só mudam como os números são combinados.</p>
+                                </div>
+                                <button type="button" @click="strategyInfoOpen = false" class="shrink-0 rounded-lg p-1 text-slate-500 hover:bg-white/5 hover:text-slate-300">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div class="space-y-3">
+                                @foreach ($strategyDetails as $key => $details)
+                                    <div class="rounded-lg p-3 {{ $key === $strategy ? 'bg-emerald-500/10 ring-1 ring-emerald-500/30' : 'bg-white/5' }}">
+                                        <p class="text-sm font-medium {{ $key === $strategy ? 'text-emerald-400' : 'text-slate-200' }}">{{ $details['label'] }}</p>
+                                        <p class="mt-0.5 text-xs text-slate-400">{{ $details['description'] }}</p>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 @if ($strategy === 'hot_cold')
                     <x-ui.select-input name="bias" label="Viés" wire:model.live="bias">
@@ -61,13 +99,33 @@
         <div class="space-y-4 lg:col-span-2">
             @if ($previewGames !== [])
                 <x-ui.panel-card title="Prévia dos jogos" :subtitle="count($previewGames).' jogo(s) · R$ '.number_format($totalPrice, 2, ',', '.').' no total'">
+                    <x-slot:actions>
+                        <button type="button" wire:click="clearGames"
+                            class="rounded-lg border border-white/10 px-3 py-1.5 text-sm text-slate-300 hover:bg-white/5">
+                            Limpar jogos
+                        </button>
+                    </x-slot:actions>
+
                     <div class="space-y-3">
                         @foreach ($previewGames as $index => $numbers)
-                            <div class="flex flex-wrap items-center gap-2 rounded-lg bg-white/5 px-3 py-2">
-                                <span class="w-6 text-xs text-slate-500">#{{ $index + 1 }}</span>
-                                @foreach ($numbers as $number)
-                                    <x-ui.number-ball :number="$number" size="sm" />
-                                @endforeach
+                            <div class="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-white/5 px-3 py-2">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="w-6 text-xs text-slate-500">#{{ $index + 1 }}</span>
+                                    @foreach ($numbers as $number)
+                                        <x-ui.number-ball :number="$number" size="sm" />
+                                    @endforeach
+                                </div>
+
+                                @if ($strategy === 'balanced')
+                                    @php
+                                        $sum = array_sum($numbers);
+                                        $withinRange = (is_null($minSum) || $sum >= $minSum) && (is_null($maxSum) || $sum <= $maxSum);
+                                    @endphp
+                                    <span class="shrink-0 rounded-md px-2 py-0.5 text-xs font-medium {{ $withinRange ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400' }}"
+                                        title="{{ $withinRange ? 'Dentro da faixa de soma definida' : 'Fora da faixa de soma definida (limite de tentativas atingido)' }}">
+                                        Soma: {{ $sum }}
+                                    </span>
+                                @endif
                             </div>
                         @endforeach
                     </div>

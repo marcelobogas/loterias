@@ -29,6 +29,11 @@ class BalancedFilterStrategy implements LotteryStrategyContract
         return 'Balanceado por filtros';
     }
 
+    public function description(): string
+    {
+        return 'Sorteia números aleatórios até achar uma combinação dentro dos limites de soma e de pares que você definir. Evita combinações que fogem do padrão comum (ex: só pares, soma muito baixa) — não aumenta a chance de acerto.';
+    }
+
     public function pick(Lottery $lottery, int $numbersPerGame, array $context): array
     {
         $filters = $context['filters'] ?? [];

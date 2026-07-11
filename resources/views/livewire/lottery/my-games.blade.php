@@ -15,16 +15,34 @@
         <x-ui.stat-card label="Saldo" value="R$ {{ number_format($roi['net'], 2, ',', '.') }}" :tone="$roi['net'] >= 0 ? 'positive' : 'negative'" />
     </div>
 
-    <x-ui.button wire:click="checkNow" size="sm">Conferir agora</x-ui.button>
+    <div class="flex flex-wrap items-center gap-2">
+        <x-ui.button wire:click="checkNow" size="sm">
+            <span wire:loading.remove wire:target="checkNow">Conferir agora</span>
+            <span wire:loading wire:target="checkNow">Conferindo...</span>
+        </x-ui.button>
+
+        @if ($games->total() > 0)
+            <button type="button" wire:click="deleteAllGames"
+                wire:confirm="Isso vai excluir TODOS os jogos salvos desta loteria e zerar os totais. Tem certeza?"
+                wire:loading.attr="disabled" wire:target="deleteAllGames"
+                class="rounded-lg border border-rose-500/30 px-3 py-1.5 text-sm font-medium text-rose-400 hover:bg-rose-500/10 disabled:opacity-50">
+                Excluir todos os jogos
+            </button>
+        @endif
+    </div>
 
     <div class="space-y-3">
         @forelse ($games as $game)
-            @php $lastCheck = $game->checks->sortByDesc('checked_at')->first(); @endphp
+            @php
+                $lastCheck = $game->checks->sortByDesc('checked_at')->first();
+                $drawnNumbers = $lastCheck?->draw?->numbers->pluck('number')->all() ?? [];
+            @endphp
             <div class="rounded-xl border border-white/10 bg-slate-900/60 p-4">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div class="flex flex-wrap items-center gap-2">
                         @foreach ($game->numbers->sortBy('number') as $number)
-                            <x-ui.number-ball :number="$number->number" size="sm" />
+                            <x-ui.number-ball :number="$number->number" size="sm"
+                                :variant="in_array($number->number, $drawnNumbers) ? 'hit' : 'default'" />
                         @endforeach
                     </div>
 

@@ -28,6 +28,11 @@ class HotColdStrategy implements LotteryStrategyContract
         return 'Quente/Frio';
     }
 
+    public function description(): string
+    {
+        return 'Dá mais peso a números que saíram muito (quentes) ou que estão atrasados (frios) no histórico. Cada sorteio é independente do anterior, então isso não muda sua chance real de acerto — só varia a composição dos jogos.';
+    }
+
     public function pick(Lottery $lottery, int $numbersPerGame, array $context): array
     {
         $bias = $context['bias'] ?? 'hot';

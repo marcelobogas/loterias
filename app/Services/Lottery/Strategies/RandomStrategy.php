@@ -17,6 +17,11 @@ class RandomStrategy implements LotteryStrategyContract
         return 'Aleatório';
     }
 
+    public function description(): string
+    {
+        return 'Sorteia os números com a mesma chance para todos, sem nenhum critério. É a base neutra de comparação — nenhuma outra estratégia tem probabilidade de acerto maior que esta.';
+    }
+
     public function pick(Lottery $lottery, int $numbersPerGame, array $context): array
     {
         $pool = range(1, $lottery->universe_size);

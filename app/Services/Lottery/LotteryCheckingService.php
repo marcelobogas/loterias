@@ -104,8 +104,15 @@ class LotteryCheckingService
             return $game->lottery->draws()->where('contest_number', $game->for_contest_number)->first();
         }
 
+        // created_at is stored in UTC; compare in the draw's local timezone,
+        // and a game saved after the ~20h draw can only target the next day.
+        $createdLocal = $game->created_at->copy()->timezone(config('caixa.draw_timezone'));
+        $earliestDrawDate = $createdLocal->hour >= config('caixa.draw_cutoff_hour')
+            ? $createdLocal->addDay()->toDateString()
+            : $createdLocal->toDateString();
+
         return $game->lottery->draws()
-            ->whereDate('draw_date', '>=', $game->created_at)
+            ->whereDate('draw_date', '>=', $earliestDrawDate)
             ->orderBy('contest_number')
             ->first();
     }

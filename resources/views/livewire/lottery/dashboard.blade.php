@@ -39,6 +39,17 @@
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <x-ui.panel-card title="Frequência" subtitle="Quantas vezes cada dezena saiu na janela selecionada">
+            <x-slot:actions>
+                <div class="flex items-center gap-1 text-xs">
+                    @foreach ($this->frequencySortOptions() as $value => $label)
+                        <button type="button" wire:click="$set('frequencySort', '{{ $value }}')"
+                            class="rounded-md px-2 py-1 {{ $frequencySort === $value ? 'bg-emerald-500 text-slate-950 font-medium' : 'bg-white/5 text-slate-300 hover:bg-white/10' }}">
+                            {{ $label }}
+                        </button>
+                    @endforeach
+                </div>
+            </x-slot:actions>
+
             @php $max = max($frequency->max(), 1); @endphp
             <div class="flex flex-wrap gap-2">
                 @foreach ($frequency as $number => $count)

@@ -65,3 +65,20 @@ test('statistics survive a cache write/read round trip (regression: Laravel 13 b
             ->and($pairs->first())->toHaveKeys(['number_a', 'number_b', 'total']);
     }
 });
+
+test('statistics refresh as soon as a new draw is persisted (cache key rotates)', function () {
+    $lottery = statsLottery();
+    seedStatsDraws($lottery);
+
+    $service = app(LotteryStatisticsService::class);
+
+    // Prime the cache with the current 2-draw history.
+    expect($service->frequencyTable($lottery)->get(3))->toBe(2);
+
+    // Persist contest 3 including number 3 again; the cache key embeds the
+    // latest contest number, so no manual invalidation should be needed.
+    $persister = app(LotteryDrawPersister::class);
+    $persister->persist($lottery, makeFakeDraw(3), DrawSourceEnum::Api);
+
+    expect($service->frequencyTable($lottery)->get(3))->toBe(3);
+});

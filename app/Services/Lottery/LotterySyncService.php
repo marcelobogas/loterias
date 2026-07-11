@@ -19,9 +19,10 @@ class LotterySyncService
 
     /**
      * Fetches the latest contest and backfills any small gap since the last
-     * known local contest. Larger historical gaps (e.g. a brand new lottery)
-     * should go through `lottery:backfill` instead, which is chunked and
-     * logged per range rather than inline here.
+     * known local contest. When the gap exceeds the inline limit, only the
+     * most recent contests are filled (the latest always lands) and the sync
+     * is logged as partial; the remaining history should go through
+     * `lottery:backfill`, which is chunked and logged per range.
      */
     public function syncLatest(Lottery $lottery, int $maxGapFill = 10): LotterySyncLog
     {
@@ -31,18 +32,11 @@ class LotterySyncService
         try {
             $latest = $this->provider->fetchLatest($lottery->caixa_api_slug);
             $localLatest = (int) ($lottery->draws()->max('contest_number') ?? 0);
-            $gap = max(0, $latest->contestNumber - $localLatest - 1);
 
-            if ($gap > $maxGapFill) {
-                return $this->log($lottery, 'api', $startedAt, 'partial', 0, sprintf(
-                    'Gap of %d contests since #%d is larger than the %d-contest inline limit; run lottery:backfill.',
-                    $gap,
-                    $localLatest,
-                    $maxGapFill,
-                ));
-            }
+            $firstToFill = max($localLatest + 1, $latest->contestNumber - $maxGapFill);
+            $skipped = $firstToFill - ($localLatest + 1);
 
-            for ($contest = $localLatest + 1; $contest < $latest->contestNumber; $contest++) {
+            for ($contest = $firstToFill; $contest < $latest->contestNumber; $contest++) {
                 $data = $this->provider->fetchByContest($lottery->caixa_api_slug, $contest);
                 $this->persister->persist($lottery, $data, DrawSourceEnum::Api);
                 $synced++;
@@ -51,6 +45,15 @@ class LotterySyncService
 
             $this->persister->persist($lottery, $latest, DrawSourceEnum::Api);
             $synced++;
+
+            if ($skipped > 0) {
+                return $this->log($lottery, 'api', $startedAt, 'partial', $synced, sprintf(
+                    'Skipped %d older contests after #%d (inline limit %d); run lottery:backfill to fill the gap.',
+                    $skipped,
+                    $localLatest,
+                    $maxGapFill,
+                ));
+            }
 
             return $this->log($lottery, 'api', $startedAt, 'success', $synced);
         } catch (LotteryApiNotFoundException|LotteryApiUnavailableException $exception) {

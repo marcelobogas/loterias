@@ -29,6 +29,11 @@ class ReducedWheelHeuristicStrategy implements LotteryStrategyContract
         return 'Fechamento reduzido (heurístico)';
     }
 
+    public function description(): string
+    {
+        return 'Distribui um conjunto maior de números que você escolher entre os jogos do lote, priorizando cobrir o máximo de pares diferentes entre eles. Ideal para quando você vai comprar vários jogos e quer que se complementem, em vez de sorteios independentes — não é uma garantia matemática formal de acerto mínimo.';
+    }
+
     public function pick(Lottery $lottery, int $numbersPerGame, array $context): array
     {
         $pool = $context['pool'] ?? range(1, $lottery->universe_size);
