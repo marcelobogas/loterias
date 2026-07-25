@@ -22,6 +22,7 @@ class LotterySeeder extends Seeder
         $this->seedMegaSena();
         $this->seedQuina();
         $this->seedLotomania();
+        $this->seedUpcoming();
     }
 
     private function seedLotofacil(): void
@@ -90,10 +91,11 @@ class LotterySeeder extends Seeder
             ]
         );
 
-        // Confirmed by user (2026-07-25) — re-check periodically, Caixa
-        // changes this from time to time.
-        $unitPrice = 5.00;
-        $effectiveFrom = '2024-01-01';
+        // Reajuste oficial vigente desde 09/07/2025 (Caixa Notícias,
+        // 2025-07-03) — re-check periodically, Caixa changes this from
+        // time to time.
+        $unitPrice = 6.00;
+        $effectiveFrom = '2025-07-09';
 
         foreach (range(6, 15) as $numbersChosen) {
             $combinations = $this->combinations($numbersChosen, 6);
@@ -138,10 +140,11 @@ class LotterySeeder extends Seeder
             ]
         );
 
-        // Confirmed by user (2026-07-25) — re-check periodically, Caixa
-        // changes this from time to time.
-        $unitPrice = 2.50;
-        $effectiveFrom = '2024-01-01';
+        // Reajuste oficial vigente desde 09/07/2025 (Caixa Notícias,
+        // 2025-07-03) — re-check periodically, Caixa changes this from
+        // time to time.
+        $unitPrice = 3.00;
+        $effectiveFrom = '2025-07-09';
 
         foreach (range(5, 15) as $numbersChosen) {
             $combinations = $this->combinations($numbersChosen, 5);
@@ -192,8 +195,8 @@ class LotterySeeder extends Seeder
             ]
         );
 
-        // Confirmed by user (2026-07-25) — re-check periodically, Caixa
-        // changes this from time to time.
+        // Confirmed directly on loterias.caixa.gov.br (2026-07-25) — not
+        // part of the 09/07/2025 reajuste, re-check periodically.
         LotteryPriceTier::updateOrCreate(
             [
                 'lottery_id' => $lottery->id,
@@ -211,6 +214,121 @@ class LotterySeeder extends Seeder
             LotteryPrizeTier::updateOrCreate(
                 ['lottery_id' => $lottery->id, 'hits' => $hits],
                 ['label' => "{$hits} acertos"]
+            );
+        }
+    }
+
+    /**
+     * The remaining Caixa lottery products, shown on the home page as
+     * "Em breve" (is_active => false) — no price/prize tiers, matching the
+     * placeholder pattern used for Mega-Sena/Quina/Lotomania before they
+     * were implemented.
+     *
+     * Dupla Sena, Timemania and Dia de Sorte roughly fit the "pick K of N"
+     * schema (min/max/universe below are real), though each has an extra
+     * mechanic the schema doesn't model yet: Dupla Sena draws twice per
+     * contest, Timemania also picks a "Time do Coração", Dia de Sorte also
+     * picks a "Mês da Sorte".
+     *
+     * Super Sete, +Milionária, Loteca and Federal do NOT fit this schema at
+     * all — Super Sete is 7 independent columns of 0-9 (not one pool),
+     * +Milionária has two separate pools (6 of 50 + 2 "trevos" of 6), Loteca
+     * is match-outcome picks (not numbers), and Federal is a pre-printed
+     * raffle ticket with no player choice. Their universe_size/numbers_drawn/
+     * min/max below are meaningless placeholders that only satisfy the
+     * NOT NULL columns — real support would need a schema/model change, not
+     * just seed data.
+     */
+    private function seedUpcoming(): void
+    {
+        $upcoming = [
+            [
+                'slug' => 'dupla-sena',
+                'name' => 'Dupla Sena',
+                'caixa_api_slug' => 'duplasena',
+                'universe_size' => 50,
+                'numbers_drawn' => 6,
+                'min_numbers_per_game' => 6,
+                'max_numbers_per_game' => 15,
+                'color_hex' => '#B0243C',
+                'description' => 'Escolha de 6 a 15 números entre 1 e 50. São sorteados 6 números em dois sorteios por concurso.',
+            ],
+            [
+                'slug' => 'timemania',
+                'name' => 'Timemania',
+                'caixa_api_slug' => 'timemania',
+                'universe_size' => 80,
+                'numbers_drawn' => 7,
+                'min_numbers_per_game' => 10,
+                'max_numbers_per_game' => 10,
+                'color_hex' => '#2E7D32',
+                'description' => 'Escolha 10 números entre 1 e 80 e um Time do Coração. São sorteados 7 números e um time por concurso.',
+            ],
+            [
+                'slug' => 'dia-de-sorte',
+                'name' => 'Dia de Sorte',
+                'caixa_api_slug' => 'diadesorte',
+                'universe_size' => 31,
+                'numbers_drawn' => 7,
+                'min_numbers_per_game' => 7,
+                'max_numbers_per_game' => 15,
+                'color_hex' => '#D4A017',
+                'description' => 'Escolha de 7 a 15 números entre 1 e 31 e um Mês da Sorte. São sorteados 7 números e um mês por concurso.',
+            ],
+            [
+                'slug' => 'super-sete',
+                'name' => 'Super Sete',
+                'caixa_api_slug' => 'supersete',
+                'universe_size' => 10,
+                'numbers_drawn' => 7,
+                'min_numbers_per_game' => 7,
+                'max_numbers_per_game' => 7,
+                'color_hex' => '#00BFA5',
+                'description' => 'Escolha 1 número de 0 a 9 em cada uma de 7 colunas independentes.',
+            ],
+            [
+                'slug' => 'mais-milionaria',
+                'name' => '+Milionária',
+                'caixa_api_slug' => 'maismilionaria',
+                'universe_size' => 50,
+                'numbers_drawn' => 6,
+                'min_numbers_per_game' => 6,
+                'max_numbers_per_game' => 6,
+                'color_hex' => '#6A1B9A',
+                'description' => 'Escolha 6 números entre 1 e 50 e 2 trevos entre 1 e 6.',
+            ],
+            [
+                'slug' => 'loteca',
+                'name' => 'Loteca',
+                'caixa_api_slug' => 'loteca',
+                'universe_size' => 3,
+                'numbers_drawn' => 14,
+                'min_numbers_per_game' => 14,
+                'max_numbers_per_game' => 14,
+                'color_hex' => '#1565C0',
+                'description' => 'Prognóstico de vitória, empate ou derrota em 14 jogos de futebol.',
+            ],
+            [
+                'slug' => 'federal',
+                'name' => 'Loteria Federal',
+                'caixa_api_slug' => 'federal',
+                'universe_size' => 1,
+                'numbers_drawn' => 1,
+                'min_numbers_per_game' => 1,
+                'max_numbers_per_game' => 1,
+                'color_hex' => '#616161',
+                'description' => 'Sorteio tradicional por bilhetes numerados pré-impressos, sem escolha de números.',
+            ],
+        ];
+
+        foreach ($upcoming as $data) {
+            Lottery::updateOrCreate(
+                ['slug' => $data['slug']],
+                [
+                    ...$data,
+                    'draw_days_of_week' => null,
+                    'is_active' => false,
+                ]
             );
         }
     }

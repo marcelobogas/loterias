@@ -6,7 +6,7 @@
 
 @php
     $sizeClasses = match ($size) {
-        'sm' => 'px-4 py-2 text-sm font-medium',
+        'sm' => 'px-3 py-1.5 text-sm font-medium',
         default => 'px-4 py-2 font-medium',
     };
 @endphp
