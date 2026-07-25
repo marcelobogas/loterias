@@ -13,7 +13,7 @@
 
 <button type="{{ $type }}" wire:loading.attr="disabled"
     {{ $attributes->class([
-        'rounded-lg bg-emerald-500 text-slate-950 hover:bg-emerald-400 disabled:opacity-60',
+        'rounded-lg bg-[var(--lottery-accent)] text-[var(--lottery-on-accent)] hover:bg-[var(--lottery-accent-hover)] disabled:opacity-60',
         $sizeClasses,
         'w-full' => $full,
     ]) }}>

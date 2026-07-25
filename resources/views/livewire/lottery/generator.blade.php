@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<x-ui.lottery-theme :lottery="$lottery">
     <x-ui.page-header title="{{ 'Gerar jogos · '.$lottery->name }}" subtitle="Escolha uma estratégia e filtros; o preço segue a tabela oficial da Caixa.">
         <x-slot:actions>
             <x-ui.lottery-nav :lottery="$lottery" active="generator" />
@@ -28,7 +28,7 @@
 
                     <p class="mt-1.5 text-xs text-slate-500">
                         {{ $strategyDetails[$strategy]['description'] ?? '' }}
-                        <button type="button" @click="strategyInfoOpen = true" class="font-medium text-emerald-500 hover:text-emerald-400">Comparar estratégias</button>
+                        <button type="button" @click="strategyInfoOpen = true" class="font-medium text-[var(--lottery-accent)] hover:text-[var(--lottery-accent-hover)]">Comparar estratégias</button>
                     </p>
 
                     <div x-show="strategyInfoOpen" x-cloak
@@ -53,8 +53,8 @@
 
                             <div class="space-y-3">
                                 @foreach ($strategyDetails as $key => $details)
-                                    <div class="rounded-lg p-3 {{ $key === $strategy ? 'bg-emerald-500/10 ring-1 ring-emerald-500/30' : 'bg-white/5' }}">
-                                        <p class="text-sm font-medium {{ $key === $strategy ? 'text-emerald-400' : 'text-slate-200' }}">{{ $details['label'] }}</p>
+                                    <div class="rounded-lg p-3 {{ $key === $strategy ? 'bg-[var(--lottery-accent)]/10 ring-1 ring-[var(--lottery-accent)]/30' : 'bg-white/5' }}">
+                                        <p class="text-sm font-medium {{ $key === $strategy ? 'text-[var(--lottery-accent)]' : 'text-slate-200' }}">{{ $details['label'] }}</p>
                                         <p class="mt-0.5 text-xs text-slate-400">{{ $details['description'] }}</p>
                                     </div>
                                 @endforeach
@@ -150,4 +150,4 @@
             @endif
         </div>
     </div>
-</div>
+</x-ui.lottery-theme>

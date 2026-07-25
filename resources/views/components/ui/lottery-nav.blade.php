@@ -12,7 +12,7 @@
     ];
 
     $linkClass = fn (string $key) => $active === $key
-        ? 'rounded-lg bg-emerald-500/10 px-3 py-1.5 font-medium text-emerald-400'
+        ? 'rounded-lg bg-[var(--lottery-accent)]/10 px-3 py-1.5 font-medium text-[var(--lottery-accent)]'
         : 'rounded-lg px-3 py-1.5 text-slate-400 hover:bg-white/5 hover:text-white';
 @endphp
 

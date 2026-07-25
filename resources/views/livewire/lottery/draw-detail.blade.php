@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<x-ui.lottery-theme :lottery="$lottery">
     <x-ui.page-header title="{{ $lottery->name.' · Concurso #'.$draw->contest_number }}">
         <x-slot:subtitle>{{ $draw->draw_date->format('d/m/Y') }} @if ($draw->location) · {{ $draw->location }} @endif</x-slot:subtitle>
         <x-slot:actions>
@@ -47,4 +47,4 @@
             </div>
         </x-ui.panel-card>
     @endif
-</div>
+</x-ui.lottery-theme>

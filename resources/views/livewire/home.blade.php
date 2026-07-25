@@ -10,8 +10,8 @@
                 <a href="{{ route('lottery.dashboard', $lottery) }}" wire:navigate
                     class="group rounded-2xl border border-white/10 bg-slate-900/60 p-5 transition hover:border-emerald-500/50 hover:bg-slate-900">
                     <div class="flex items-center gap-3">
-                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-slate-950"
-                            style="background-color: {{ $lottery->color_hex ?? '#10b981' }}">
+                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
+                            style="background-color: {{ $lottery->color_hex ?? '#10b981' }}; color: {{ $lottery->accentForegroundHex() }}">
                             {{ mb_substr($lottery->name, 0, 1) }}
                         </span>
                         <div>

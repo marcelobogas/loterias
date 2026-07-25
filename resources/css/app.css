@@ -8,6 +8,13 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
+:root {
+    /* Fallback (emerald) para páginas sem loteria no contexto; <x-ui.lottery-theme> sobrescreve por loteria. */
+    --lottery-accent: #10b981;
+    --lottery-accent-hover: #34d399;
+    --lottery-on-accent: #020617;
+}
+
 [x-cloak] {
     display: none !important;
 }

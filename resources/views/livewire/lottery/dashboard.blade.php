@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<x-ui.lottery-theme :lottery="$lottery">
     <x-ui.page-header :title="$lottery->name" :subtitle="$drawsCount.' concurso(s) no histórico.'">
         <x-slot:actions>
             <x-ui.lottery-nav :lottery="$lottery" active="dashboard" />
@@ -31,7 +31,7 @@
         <span class="text-slate-400">Janela de análise:</span>
         @foreach ($this->windowOptions() as $value => $label)
             <button type="button" wire:click="$set('window', '{{ $value }}')"
-                class="rounded-lg px-3 py-1 {{ $window === (string) $value ? 'bg-emerald-500 text-slate-950 font-medium' : 'bg-white/5 text-slate-300 hover:bg-white/10' }}">
+                class="rounded-lg px-3 py-1 {{ $window === (string) $value ? 'bg-[var(--lottery-accent)] text-[var(--lottery-on-accent)] font-medium' : 'bg-white/5 text-slate-300 hover:bg-white/10' }}">
                 {{ $label }}
             </button>
         @endforeach
@@ -43,7 +43,7 @@
                 <div class="flex items-center gap-1 text-xs">
                     @foreach ($this->frequencySortOptions() as $value => $label)
                         <button type="button" wire:click="$set('frequencySort', '{{ $value }}')"
-                            class="rounded-md px-2 py-1 {{ $frequencySort === $value ? 'bg-emerald-500 text-slate-950 font-medium' : 'bg-white/5 text-slate-300 hover:bg-white/10' }}">
+                            class="rounded-md px-2 py-1 {{ $frequencySort === $value ? 'bg-[var(--lottery-accent)] text-[var(--lottery-on-accent)] font-medium' : 'bg-white/5 text-slate-300 hover:bg-white/10' }}">
                             {{ $label }}
                         </button>
                     @endforeach
@@ -97,7 +97,7 @@
         <x-ui.panel-card title="Aleatoriedade & padrões" subtitle="Teste qui-quadrado da frequência observada contra um sorteio uniforme, na janela selecionada">
             @php $consistent = $randomness['pValue'] >= 0.05; @endphp
             <div class="flex flex-wrap items-center gap-4">
-                <span class="rounded-lg px-3 py-1.5 text-sm font-medium {{ $consistent ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400' }}">
+                <span class="rounded-lg px-3 py-1.5 text-sm font-medium {{ $consistent ? 'bg-[var(--lottery-accent)]/10 text-[var(--lottery-accent)]' : 'bg-amber-500/10 text-amber-400' }}">
                     {{ $consistent ? 'Consistente com sorteio uniforme' : 'Desvio estatístico nesta janela' }}
                 </span>
                 <span class="text-sm text-slate-400">χ² = {{ number_format($randomness['chiSquare'], 2, ',', '.') }} · {{ $randomness['degreesOfFreedom'] }} graus de liberdade · p-valor {{ $randomness['pValue'] < 0.0001 ? '< 0,0001' : '= '.number_format($randomness['pValue'], 4, ',', '.') }} · {{ $randomness['draws'] }} concurso(s)</span>
@@ -125,4 +125,4 @@
             @endforeach
         </div>
     </x-ui.panel-card>
-</div>
+</x-ui.lottery-theme>

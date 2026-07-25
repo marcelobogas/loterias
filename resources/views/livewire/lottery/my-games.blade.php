@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<x-ui.lottery-theme :lottery="$lottery">
     <x-ui.page-header title="{{ 'Meus jogos · '.$lottery->name }}" subtitle="Histórico dos seus jogos salvos e conferência automática.">
         <x-slot:actions>
             <x-ui.lottery-nav :lottery="$lottery" active="my-games" />
@@ -82,4 +82,4 @@
     </div>
 
     {{ $games->links() }}
-</div>
+</x-ui.lottery-theme>

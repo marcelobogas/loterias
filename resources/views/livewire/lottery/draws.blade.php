@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<x-ui.lottery-theme :lottery="$lottery">
     <x-ui.page-header title="{{ 'Resultados · '.$lottery->name }}" subtitle="Histórico de concursos sincronizados.">
         <x-slot:actions>
             <x-ui.lottery-nav :lottery="$lottery" active="draws" />
@@ -31,4 +31,4 @@
     </div>
 
     {{ $draws->links() }}
-</div>
+</x-ui.lottery-theme>

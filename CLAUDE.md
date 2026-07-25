@@ -22,7 +22,7 @@ Você não é meu assistente. você é meu conselheiro que por acaso é mais int
 ## Comandos
 
 ```bash
-composer dev                    # serve + queue:listen + pail + vite, tudo junto
+composer dev                    # serve + pail + vite, tudo junto (fila fica a cargo do supervisor, ver docs/supervisor.conf)
 composer test                   # config:clear + php artisan test (Pest)
 php artisan test --filter=nome  # um teste só (aceita nome do test() ou do arquivo)
 vendor/bin/pint --dirty         # formatação (preset laravel)
@@ -31,10 +31,10 @@ vendor/bin/phpstan analyse      # Larastan, level 5, só app/
 php artisan lottery:sync [slug]           # busca o concurso mais recente na API da Caixa
 php artisan lottery:backfill lotofacil    # histórico completo
 php artisan lottery:import-csv lotofacil arquivo.csv
-php artisan schedule:work                 # necessário para o sync automático rodar em dev
+php artisan schedule:work                 # roda o sync automático manualmente; em dev isso já é feito pelo supervisor (docs/supervisor.conf)
 ```
 
-MySQL local (`loterias`/`loterias`), fila em `QUEUE_CONNECTION=database` — jobs (ex.: `CheckPendingGamesJob`) só processam com o queue worker de pé (`composer dev` já inclui).
+MySQL local (`loterias`/`loterias`), fila em `QUEUE_CONNECTION=database` — jobs (ex.: `CheckPendingGamesJob`) só processam com o queue worker de pé; hoje isso é papel do supervisor (`docs/supervisor.conf`, processo `loterias-worker`), não de `composer dev`.
 
 ## Commits e versionamento
 

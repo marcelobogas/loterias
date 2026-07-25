@@ -89,4 +89,13 @@ class Lottery extends Model
     {
         return $this->draws()->orderByDesc('contest_number')->first();
     }
+
+    public function accentForegroundHex(): string
+    {
+        [$red, $green, $blue] = sscanf($this->color_hex ?? '#10b981', '#%02x%02x%02x');
+
+        $luminance = (0.299 * $red + 0.587 * $green + 0.114 * $blue) / 255;
+
+        return $luminance > 0.55 ? '#020617' : '#ffffff';
+    }
 }

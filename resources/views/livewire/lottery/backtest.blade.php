@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<x-ui.lottery-theme :lottery="$lottery">
     <x-ui.page-header title="{{ 'Simulador · '.$lottery->name }}" subtitle="Testa uma estratégia contra os concursos reais e compara com a curva matemática exata.">
         <x-slot:actions>
             <x-ui.lottery-nav :lottery="$lottery" active="backtest" />
@@ -80,4 +80,4 @@
             @endif
         </div>
     </div>
-</div>
+</x-ui.lottery-theme>
