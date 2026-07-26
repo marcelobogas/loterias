@@ -15,7 +15,7 @@ class Home extends Component
         $lotteries = Lottery::orderByDesc('is_active')->orderBy('name')->get();
 
         $freshness = $lotteries->mapWithKeys(fn (Lottery $lottery) => [
-            $lottery->id => $lottery->is_active ? $sync->isUpToDate($lottery) : null,
+            $lottery->id => $lottery->is_active ? $sync->checkFreshness($lottery) : null,
         ]);
 
         return view('livewire.home', [

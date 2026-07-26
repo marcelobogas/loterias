@@ -4,11 +4,14 @@ namespace App\Services\Lottery;
 
 use App\Contracts\LotteryResultsProviderContract;
 use App\Enums\DrawSourceEnum;
+use App\Enums\LotteryFreshnessEnum;
 use App\Exceptions\Lottery\LotteryApiNotFoundException;
 use App\Exceptions\Lottery\LotteryApiUnavailableException;
 use App\Models\Lottery;
 use App\Models\LotteryDraw;
 use App\Models\LotterySyncLog;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
 class LotterySyncService
@@ -20,23 +23,28 @@ class LotterySyncService
 
     /**
      * Compares the latest locally-synced contest against a live check of the
-     * Caixa API, without persisting anything. Cached per lottery for 10
-     * minutes (including failures) so a page every visitor hits doesn't
-     * hammer an undocumented, unrated third-party endpoint.
+     * Caixa API, without persisting anything, and — when the two already
+     * agree — also checks whether a draw is overdue at Caixa's own end (a
+     * scheduled draw day has passed the cutoff hour but Caixa still hasn't
+     * published it). Without that second check, "local matches the API"
+     * reads as "everything is fine" even when Caixa itself is just late.
+     * Cached per lottery for 10 minutes (including failures) so a page every
+     * visitor hits doesn't hammer an undocumented, unrated third-party
+     * endpoint.
      *
-     * @return bool|null true = up to date, false = behind, null = unknown
-     *                   (lottery not onboarded yet, no local draws, or the
-     *                   API call failed)
+     * @return LotteryFreshnessEnum|null null = unknown (lottery not
+     *                                   onboarded yet, no local draws, or
+     *                                   the API call failed)
      */
-    public function isUpToDate(Lottery $lottery): ?bool
+    public function checkFreshness(Lottery $lottery): ?LotteryFreshnessEnum
     {
         if (! $lottery->caixa_api_slug) {
             return null;
         }
 
-        $localContest = $lottery->draws()->max('contest_number');
+        $localDraw = $lottery->latestDraw();
 
-        if (! $localContest) {
+        if (! $localDraw) {
             return null;
         }
 
@@ -52,7 +60,50 @@ class LotterySyncService
             return null;
         }
 
-        return $localContest >= $liveContest;
+        if ($localDraw->contest_number < $liveContest) {
+            return LotteryFreshnessEnum::Behind;
+        }
+
+        return $this->isDrawOverdue($lottery, Carbon::parse($localDraw->draw_date))
+            ? LotteryFreshnessEnum::AwaitingCaixa
+            : LotteryFreshnessEnum::UpToDate;
+    }
+
+    /**
+     * Whether a scheduled draw day (per draw_days_of_week) after
+     * $lastDrawDate has already passed the draw cutoff hour, in the draw's
+     * own timezone — i.e. Caixa should have published a new result by now.
+     */
+    private function isDrawOverdue(Lottery $lottery, CarbonInterface $lastDrawDate): bool
+    {
+        $drawDays = $lottery->draw_days_of_week;
+
+        if (is_string($drawDays)) {
+            $drawDays = json_decode($drawDays, true);
+        }
+
+        if (! is_array($drawDays) || $drawDays === []) {
+            return false;
+        }
+
+        $timezone = config('caixa.draw_timezone');
+        $cutoffHour = config('caixa.draw_cutoff_hour');
+
+        // draw_date is a civil calendar date (the Brasília day of the draw),
+        // not a real UTC instant — re-parsing it as midnight in the draw's
+        // own timezone avoids shifting to the previous day, which a plain
+        // ->timezone() conversion of a UTC-midnight value would do.
+        $cursor = Carbon::parse($lastDrawDate->toDateString(), $timezone)->addDay();
+
+        for ($i = 0; $i < 8; $i++) {
+            if (in_array($cursor->isoWeekday(), $drawDays, true)) {
+                return now($timezone)->greaterThan($cursor->copy()->setTime($cutoffHour, 0));
+            }
+
+            $cursor = $cursor->addDay();
+        }
+
+        return false;
     }
 
     /**

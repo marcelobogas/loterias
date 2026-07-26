@@ -21,10 +21,12 @@
                             </div>
                         </div>
 
-                        @if ($freshness[$lottery->id] === true)
+                        @if ($freshness[$lottery->id] === \App\Enums\LotteryFreshnessEnum::UpToDate)
                             <span class="shrink-0 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-400" title="O último concurso sincronizado bate com a API da Caixa">Atualizado</span>
-                        @elseif ($freshness[$lottery->id] === false)
-                            <span class="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs text-amber-400" title="Há um concurso mais recente na API da Caixa ainda não sincronizado localmente">Em atraso</span>
+                        @elseif ($freshness[$lottery->id] === \App\Enums\LotteryFreshnessEnum::AwaitingCaixa)
+                            <span class="shrink-0 rounded-full bg-sky-500/10 px-2 py-0.5 text-xs text-sky-400" title="O sorteio já era esperado, mas a Caixa ainda não divulgou o resultado">Aguardando divulgação</span>
+                        @elseif ($freshness[$lottery->id] === \App\Enums\LotteryFreshnessEnum::Behind)
+                            <span class="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs text-amber-400" title="A Caixa já divulgou um concurso mais recente que ainda não sincronizamos">Em atraso</span>
                         @endif
                     </div>
                     <p class="mt-3 text-sm text-slate-400">{{ $lottery->description }}</p>

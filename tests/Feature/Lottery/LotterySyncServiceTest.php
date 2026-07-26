@@ -2,6 +2,7 @@
 
 use App\Contracts\LotteryResultsProviderContract;
 use App\DataTransferObjects\DrawData;
+use App\Enums\LotteryFreshnessEnum;
 use App\Exceptions\Lottery\LotteryApiUnavailableException;
 use App\Models\Lottery;
 use App\Models\LotteryDraw;
@@ -87,7 +88,7 @@ test('a gap larger than the inline limit still syncs the most recent contests as
         ->and(LotteryDraw::where('lottery_id', $lottery->id)->where('contest_number', 101)->exists())->toBeFalse();
 });
 
-test('isUpToDate returns true when the local latest contest matches the live API', function () {
+test('checkFreshness returns UpToDate when the local latest contest matches the live API and no draw is overdue', function () {
     $lottery = Lottery::create([
         'slug' => 'lotofacil',
         'name' => 'Lotofácil',
@@ -108,10 +109,10 @@ test('isUpToDate returns true when the local latest contest matches the live API
 
     $this->app->instance(LotteryResultsProviderContract::class, fakeLotteryProvider(makeFakeDraw(3731)));
 
-    expect(app(LotterySyncService::class)->isUpToDate($lottery))->toBeTrue();
+    expect(app(LotterySyncService::class)->checkFreshness($lottery))->toBe(LotteryFreshnessEnum::UpToDate);
 });
 
-test('isUpToDate returns false when the live API has a newer contest', function () {
+test('checkFreshness returns Behind when the live API has a newer contest', function () {
     $lottery = Lottery::create([
         'slug' => 'lotofacil',
         'name' => 'Lotofácil',
@@ -132,10 +133,67 @@ test('isUpToDate returns false when the live API has a newer contest', function 
 
     $this->app->instance(LotteryResultsProviderContract::class, fakeLotteryProvider(makeFakeDraw(3733)));
 
-    expect(app(LotterySyncService::class)->isUpToDate($lottery))->toBeFalse();
+    expect(app(LotterySyncService::class)->checkFreshness($lottery))->toBe(LotteryFreshnessEnum::Behind);
 });
 
-test('isUpToDate returns null when there are no local draws yet', function () {
+test('checkFreshness returns AwaitingCaixa when a scheduled draw day already passed the cutoff hour but Caixa has not published it', function () {
+    $lottery = Lottery::create([
+        'slug' => 'lotofacil',
+        'name' => 'Lotofácil',
+        'caixa_api_slug' => 'lotofacil',
+        'universe_size' => 25,
+        'numbers_drawn' => 15,
+        'min_numbers_per_game' => 15,
+        'max_numbers_per_game' => 20,
+        'is_active' => true,
+        'draw_days_of_week' => [1, 2, 3, 4, 5, 6],
+    ]);
+
+    // 2026-07-10 is a Friday; the next scheduled draw day is Saturday 07-11.
+    LotteryDraw::create([
+        'lottery_id' => $lottery->id,
+        'contest_number' => 3731,
+        'draw_date' => '2026-07-10',
+        'source' => 'api',
+    ]);
+
+    $this->app->instance(LotteryResultsProviderContract::class, fakeLotteryProvider(makeFakeDraw(3731)));
+
+    // 23:30 UTC on 07-11 = 20:30 in Brasília — Saturday's draw cutoff already passed.
+    $this->travelTo('2026-07-11 23:30:00');
+
+    expect(app(LotterySyncService::class)->checkFreshness($lottery))->toBe(LotteryFreshnessEnum::AwaitingCaixa);
+});
+
+test('checkFreshness returns UpToDate before the next scheduled draw day reaches its cutoff hour', function () {
+    $lottery = Lottery::create([
+        'slug' => 'lotofacil',
+        'name' => 'Lotofácil',
+        'caixa_api_slug' => 'lotofacil',
+        'universe_size' => 25,
+        'numbers_drawn' => 15,
+        'min_numbers_per_game' => 15,
+        'max_numbers_per_game' => 20,
+        'is_active' => true,
+        'draw_days_of_week' => [1, 2, 3, 4, 5, 6],
+    ]);
+
+    LotteryDraw::create([
+        'lottery_id' => $lottery->id,
+        'contest_number' => 3731,
+        'draw_date' => '2026-07-10',
+        'source' => 'api',
+    ]);
+
+    $this->app->instance(LotteryResultsProviderContract::class, fakeLotteryProvider(makeFakeDraw(3731)));
+
+    // 20:00 UTC on 07-11 = 17:00 in Brasília — Saturday's draw hasn't happened yet.
+    $this->travelTo('2026-07-11 20:00:00');
+
+    expect(app(LotterySyncService::class)->checkFreshness($lottery))->toBe(LotteryFreshnessEnum::UpToDate);
+});
+
+test('checkFreshness returns null when there are no local draws yet', function () {
     $lottery = Lottery::create([
         'slug' => 'lotofacil',
         'name' => 'Lotofácil',
@@ -147,10 +205,10 @@ test('isUpToDate returns null when there are no local draws yet', function () {
         'is_active' => true,
     ]);
 
-    expect(app(LotterySyncService::class)->isUpToDate($lottery))->toBeNull();
+    expect(app(LotterySyncService::class)->checkFreshness($lottery))->toBeNull();
 });
 
-test('isUpToDate returns null when the lottery has no caixa_api_slug', function () {
+test('checkFreshness returns null when the lottery has no caixa_api_slug', function () {
     $lottery = Lottery::create([
         'slug' => 'custom',
         'name' => 'Loteria customizada',
@@ -169,10 +227,10 @@ test('isUpToDate returns null when the lottery has no caixa_api_slug', function 
         'source' => 'api',
     ]);
 
-    expect(app(LotterySyncService::class)->isUpToDate($lottery))->toBeNull();
+    expect(app(LotterySyncService::class)->checkFreshness($lottery))->toBeNull();
 });
 
-test('isUpToDate returns null and does not throw when the Caixa API is unavailable', function () {
+test('checkFreshness returns null and does not throw when the Caixa API is unavailable', function () {
     $lottery = Lottery::create([
         'slug' => 'lotofacil',
         'name' => 'Lotofácil',
@@ -204,5 +262,5 @@ test('isUpToDate returns null and does not throw when the Caixa API is unavailab
         }
     });
 
-    expect(app(LotterySyncService::class)->isUpToDate($lottery))->toBeNull();
+    expect(app(LotterySyncService::class)->checkFreshness($lottery))->toBeNull();
 });
