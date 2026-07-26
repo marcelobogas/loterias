@@ -5,10 +5,6 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    @if ($checkStatusMessage)
-        <x-ui.status-banner>{{ $checkStatusMessage }}</x-ui.status-banner>
-    @endif
-
     <div class="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
         <x-ui.stat-card label="Total gasto" value="R$ {{ number_format($roi['spent'], 2, ',', '.') }}" />
         <x-ui.stat-card label="Total ganho" value="R$ {{ number_format($roi['won'], 2, ',', '.') }}" tone="positive" />
@@ -22,8 +18,8 @@
         </x-ui.button>
 
         @if ($games->total() > 0)
-            <button type="button" wire:click="deleteAllGames"
-                wire:confirm="Isso vai excluir TODOS os jogos salvos desta loteria e zerar os totais. Tem certeza?"
+            <button type="button"
+                x-on:click="swalConfirm('Isso vai excluir TODOS os jogos salvos desta loteria e zerar os totais.', () => $wire.deleteAllGames())"
                 wire:loading.attr="disabled" wire:target="deleteAllGames"
                 class="rounded-lg border border-rose-500/30 px-3 py-1.5 text-sm font-medium text-rose-400 hover:bg-rose-500/10 disabled:opacity-50">
                 Excluir todos os jogos
@@ -48,7 +44,15 @@
 
                     <div class="flex items-start gap-3">
                         <div class="text-right text-sm">
-                            <p class="text-slate-400">{{ $game->created_at->format('d/m/Y H:i') }} · R$ {{ number_format($game->price, 2, ',', '.') }}</p>
+                            <p class="text-slate-400">
+                                {{ $game->created_at->format('d/m/Y H:i') }} · R$ {{ number_format($game->price, 2, ',', '.') }}
+                                @if ($game->for_contest_number)
+                                    · Concurso {{ $game->for_contest_number }}
+                                @endif
+                            </p>
+                            @if ($game->repeat_group_count > 1)
+                                <p class="text-xs text-slate-500">Teimosinha · {{ $game->repeat_group_count }}x</p>
+                            @endif
                             @if ($lastCheck)
                                 <p class="font-medium {{ $lastCheck->prize_amount > 0 ? 'text-emerald-400' : 'text-slate-300' }}">
                                     {{ $lastCheck->hits }} acerto(s)
@@ -61,8 +65,8 @@
                             @endif
                         </div>
 
-                        <button type="button" wire:click="deleteGame({{ $game->id }})"
-                            wire:confirm="Tem certeza que deseja excluir este jogo?"
+                        <button type="button"
+                            x-on:click="swalConfirm('Tem certeza que deseja excluir este jogo?', () => $wire.deleteGame({{ $game->id }}))"
                             wire:loading.attr="disabled" wire:key="delete-{{ $game->id }}"
                             class="shrink-0 rounded-lg p-1.5 text-slate-500 hover:bg-rose-500/10 hover:text-rose-400"
                             title="Excluir jogo">

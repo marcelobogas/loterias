@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'price',
     'strategy',
     'generation_batch_id',
+    'repeat_group_id',
     'label',
     'for_contest_number',
     'checked_at',
@@ -60,5 +61,16 @@ class Game extends Model
     public function checks(): HasMany
     {
         return $this->hasMany(GameCheck::class);
+    }
+
+    /**
+     * Other occurrences of the same game repeated across future contests
+     * (Teimosinha). Empty when the game wasn't saved as part of a repeat.
+     *
+     * @return HasMany<Game, $this>
+     */
+    public function repeatGroup(): HasMany
+    {
+        return $this->hasMany(Game::class, 'repeat_group_id', 'repeat_group_id');
     }
 }

@@ -9,15 +9,23 @@
             @if ($lottery->is_active)
                 <a href="{{ route('lottery.dashboard', $lottery) }}" wire:navigate
                     class="group rounded-2xl border border-white/10 bg-slate-900/60 p-5 transition hover:border-emerald-500/50 hover:bg-slate-900">
-                    <div class="flex items-center gap-3">
-                        <span class="inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
-                            style="background-color: {{ $lottery->color_hex ?? '#10b981' }}; color: {{ $lottery->accentForegroundHex() }}">
-                            {{ mb_substr($lottery->name, 0, 1) }}
-                        </span>
-                        <div>
-                            <h2 class="font-semibold text-white group-hover:text-emerald-400">{{ $lottery->name }}</h2>
-                            <p class="text-xs text-slate-500">{{ $lottery->min_numbers_per_game }} a {{ $lottery->max_numbers_per_game }} números · sorteia {{ $lottery->numbers_drawn }}</p>
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <span class="inline-flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold"
+                                style="background-color: {{ $lottery->color_hex ?? '#10b981' }}; color: {{ $lottery->accentForegroundHex() }}">
+                                {{ mb_substr($lottery->name, 0, 1) }}
+                            </span>
+                            <div>
+                                <h2 class="font-semibold text-white group-hover:text-emerald-400">{{ $lottery->name }}</h2>
+                                <p class="text-xs text-slate-500">{{ $lottery->min_numbers_per_game }} a {{ $lottery->max_numbers_per_game }} números · sorteia {{ $lottery->numbers_drawn }}</p>
+                            </div>
                         </div>
+
+                        @if ($freshness[$lottery->id] === true)
+                            <span class="shrink-0 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-400" title="O último concurso sincronizado bate com a API da Caixa">Atualizado</span>
+                        @elseif ($freshness[$lottery->id] === false)
+                            <span class="shrink-0 rounded-full bg-amber-500/10 px-2 py-0.5 text-xs text-amber-400" title="Há um concurso mais recente na API da Caixa ainda não sincronizado localmente">Em atraso</span>
+                        @endif
                     </div>
                     <p class="mt-3 text-sm text-slate-400">{{ $lottery->description }}</p>
                 </a>

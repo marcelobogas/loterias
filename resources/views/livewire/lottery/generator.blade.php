@@ -5,10 +5,6 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    @if ($statusMessage)
-        <x-ui.status-banner>{{ $statusMessage }}</x-ui.status-banner>
-    @endif
-
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <x-ui.panel-card title="Configuração" class="lg:col-span-1">
             <div class="space-y-4">
@@ -18,6 +14,14 @@
 
                 <x-ui.text-input name="gamesCount" label="Quantidade de jogos" type="number"
                     wire:model.live="gamesCount" min="1" max="20" />
+
+                <x-ui.checkbox-input name="repeatEnabled" label="Repetir para os próximos concursos (Teimosinha)" wire:model.live="repeatEnabled" />
+
+                @if ($repeatEnabled)
+                    <x-ui.text-input name="repeatContests" label="Quantidade de concursos" type="number"
+                        wire:model.live="repeatContests" min="2" max="8"
+                        hint="Entre 2 e 8 concursos consecutivos, a partir do próximo concurso disponível." />
+                @endif
 
                 <div x-data="{ strategyInfoOpen: false }">
                     <x-ui.select-input name="strategy" label="Estratégia" wire:model.live="strategy">
@@ -87,9 +91,9 @@
 
                 <div class="space-y-1 rounded-lg bg-white/5 px-3 py-2 text-sm">
                     <div>
-                        <span class="text-slate-400">Custo estimado do lote:</span>
+                        <span class="text-slate-400">Custo estimado do lote{{ $repeatMultiplier > 1 ? ' (x'.$repeatMultiplier.' concursos)' : '' }}:</span>
                         <span class="font-medium text-white">
-                            {{ $estimatedBatchPrice !== null ? 'R$ '.number_format($estimatedBatchPrice, 2, ',', '.') : '—' }}
+                            {{ $estimatedBatchPrice !== null ? 'R$ '.number_format($estimatedBatchPrice * $repeatMultiplier, 2, ',', '.') : '—' }}
                         </span>
                     </div>
                     @if ($expectedValue !== null && $pricePerGameEstimate = ($estimatedBatchPrice / max(1, $gamesCount)))
@@ -107,7 +111,7 @@
 
         <div class="space-y-4 lg:col-span-2">
             @if ($previewGames !== [])
-                <x-ui.panel-card title="Prévia dos jogos" :subtitle="count($previewGames).' jogo(s) · R$ '.number_format($totalPrice, 2, ',', '.').' no total'">
+                <x-ui.panel-card title="Prévia dos jogos" :subtitle="count($previewGames).' jogo(s) · R$ '.number_format($totalPrice * $repeatMultiplier, 2, ',', '.').' no total'.($repeatMultiplier > 1 ? ' ('.$repeatMultiplier.' concursos)' : '')">
                     <x-slot:actions>
                         <button type="button" wire:click="clearGames"
                             class="rounded-lg border border-white/10 px-3 py-1.5 text-sm text-slate-300 hover:bg-white/5">

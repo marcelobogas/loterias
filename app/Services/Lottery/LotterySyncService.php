@@ -9,6 +9,7 @@ use App\Exceptions\Lottery\LotteryApiUnavailableException;
 use App\Models\Lottery;
 use App\Models\LotteryDraw;
 use App\Models\LotterySyncLog;
+use Illuminate\Support\Facades\Cache;
 
 class LotterySyncService
 {
@@ -16,6 +17,43 @@ class LotterySyncService
         private readonly LotteryResultsProviderContract $provider,
         private readonly LotteryDrawPersister $persister,
     ) {}
+
+    /**
+     * Compares the latest locally-synced contest against a live check of the
+     * Caixa API, without persisting anything. Cached per lottery for 10
+     * minutes (including failures) so a page every visitor hits doesn't
+     * hammer an undocumented, unrated third-party endpoint.
+     *
+     * @return bool|null true = up to date, false = behind, null = unknown
+     *                   (lottery not onboarded yet, no local draws, or the
+     *                   API call failed)
+     */
+    public function isUpToDate(Lottery $lottery): ?bool
+    {
+        if (! $lottery->caixa_api_slug) {
+            return null;
+        }
+
+        $localContest = $lottery->draws()->max('contest_number');
+
+        if (! $localContest) {
+            return null;
+        }
+
+        $liveContest = Cache::remember("lottery:{$lottery->id}:live-latest-contest", now()->addMinutes(10), function () use ($lottery) {
+            try {
+                return $this->provider->fetchLatest($lottery->caixa_api_slug)->contestNumber;
+            } catch (LotteryApiNotFoundException|LotteryApiUnavailableException) {
+                return -1;
+            }
+        });
+
+        if ($liveContest === -1) {
+            return null;
+        }
+
+        return $localContest >= $liveContest;
+    }
 
     /**
      * Fetches the latest contest and backfills any small gap since the last

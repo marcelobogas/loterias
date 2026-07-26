@@ -27,8 +27,6 @@ class Profile extends Component
 
     public $photo = null;
 
-    public ?string $statusMessage = null;
-
     public function mount(): void
     {
         $this->name = Auth::user()->name;
@@ -52,7 +50,7 @@ class Profile extends Component
         ]);
 
         $this->reset('photo');
-        $this->statusMessage = 'Foto atualizada com sucesso.';
+        $this->dispatch('flash', message: 'Foto atualizada com sucesso.');
     }
 
     public function removePhoto(): void
@@ -64,7 +62,7 @@ class Profile extends Component
             $user->update(['avatar_path' => null]);
         }
 
-        $this->statusMessage = 'Foto removida.';
+        $this->dispatch('flash', message: 'Foto removida.');
     }
 
     public function updateProfile(UpdatesUserProfileInformation $updater): void
@@ -74,7 +72,7 @@ class Profile extends Component
             'email' => $this->email,
         ]);
 
-        $this->statusMessage = 'Perfil atualizado com sucesso.';
+        $this->dispatch('flash', message: 'Perfil atualizado com sucesso.');
     }
 
     public function updatePassword(UpdatesUserPasswords $updater): void
@@ -86,7 +84,7 @@ class Profile extends Component
         ]);
 
         $this->reset(['current_password', 'password', 'password_confirmation']);
-        $this->statusMessage = 'Senha atualizada com sucesso.';
+        $this->dispatch('flash', message: 'Senha atualizada com sucesso.');
     }
 
     public function render()

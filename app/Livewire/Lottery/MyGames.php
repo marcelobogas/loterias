@@ -16,17 +16,15 @@ class MyGames extends Component
     use WithLotteryContext;
     use WithPagination;
 
-    public ?string $checkStatusMessage = null;
-
     public function checkNow(LotteryCheckingService $checker, LotterySyncService $sync): void
     {
         $this->maybeSyncOnDemand($sync);
 
         $checked = $checker->checkPendingForUser(auth()->user());
 
-        $this->checkStatusMessage = $checked > 0
+        $this->dispatch('flash', message: $checked > 0
             ? "{$checked} jogo(s) conferido(s) agora."
-            : 'Nenhum concurso novo para conferir ainda.';
+            : 'Nenhum concurso novo para conferir ainda.');
     }
 
     /**
@@ -55,7 +53,7 @@ class MyGames extends Component
 
         $game->delete();
 
-        $this->checkStatusMessage = 'Jogo excluído.';
+        $this->dispatch('flash', message: 'Jogo excluído.');
         $this->resetPage();
     }
 
@@ -63,9 +61,9 @@ class MyGames extends Component
     {
         $deleted = auth()->user()->games()->where('lottery_id', $this->lottery->id)->delete();
 
-        $this->checkStatusMessage = $deleted > 0
+        $this->dispatch('flash', message: $deleted > 0
             ? "{$deleted} jogo(s) excluído(s)."
-            : 'Nenhum jogo para excluir.';
+            : 'Nenhum jogo para excluir.');
 
         $this->resetPage();
     }
@@ -74,6 +72,7 @@ class MyGames extends Component
     {
         $games = auth()->user()->games()
             ->where('lottery_id', $this->lottery->id)
+            ->withCount('repeatGroup')
             ->with(['numbers', 'checks.prizeTier', 'checks.draw.numbers'])
             ->latest()
             ->paginate(10);

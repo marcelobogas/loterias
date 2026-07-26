@@ -23,6 +23,10 @@ class Generator extends Component
 
     public string $strategy = 'random';
 
+    public bool $repeatEnabled = false;
+
+    public int $repeatContests = 4;
+
     public string $bias = 'hot';
 
     public ?int $minSum = null;
@@ -41,8 +45,6 @@ class Generator extends Component
     public ?float $pricePerGame = null;
 
     public ?float $totalPrice = null;
-
-    public ?string $statusMessage = null;
 
     public function mount(Lottery $lottery): void
     {
@@ -78,8 +80,6 @@ class Generator extends Component
 
     public function generate(LotteryGameGeneratorService $generator): void
     {
-        $this->statusMessage = null;
-
         $this->validate([
             'numbersPerGame' => "required|integer|min:{$this->lottery->min_numbers_per_game}|max:{$this->lottery->max_numbers_per_game}",
             'gamesCount' => 'required|integer|min:1|max:20',
@@ -111,7 +111,6 @@ class Generator extends Component
         $this->previewGames = [];
         $this->pricePerGame = null;
         $this->totalPrice = null;
-        $this->statusMessage = null;
     }
 
     public function save(SaveGameAction $action): void
@@ -126,15 +125,43 @@ class Generator extends Component
             return;
         }
 
-        // Resolved at save time (not mount) so a long-lived component still
-        // targets the contest that is actually open when the user saves.
+        if ($this->repeatEnabled) {
+            $this->validate([
+                'repeatContests' => 'required|integer|min:2|max:8',
+            ]);
+        }
+
+        $targetContests = $this->resolveTargetContests();
+
+        $action->execute(auth()->user(), $this->lottery, $this->previewGames, $this->strategy, $this->pricePerGame, $targetContests);
+
+        $this->previewGames = [];
+
+        $this->dispatch('flash', message: $this->repeatEnabled && count($targetContests) === 1
+            ? 'Jogos salvos, mas a repetição foi ignorada: nenhum concurso sincronizado ainda.'
+            : 'Jogos salvos com sucesso!');
+    }
+
+    /**
+     * The contest(s) new games should target. Resolved at save/render time
+     * (not mount) so a long-lived component still targets the contest that
+     * is actually open. Falls back to a single contest (today's behavior)
+     * when repeat isn't enabled or no draw has synced yet to project from.
+     *
+     * @return array<int, int|null>
+     */
+    private function resolveTargetContests(): array
+    {
         $latestDraw = $this->lottery->latestDraw();
         $forContest = $latestDraw ? ($latestDraw->next_contest_number ?? $latestDraw->contest_number + 1) : null;
 
-        $action->execute(auth()->user(), $this->lottery, $this->previewGames, $this->strategy, $this->pricePerGame, $forContest);
+        if ($forContest === null || ! $this->repeatEnabled) {
+            return [$forContest];
+        }
 
-        $this->previewGames = [];
-        $this->statusMessage = 'Jogos salvos com sucesso!';
+        $repeatCount = max(1, min($this->repeatContests, 8));
+
+        return range($forContest, $forContest + $repeatCount - 1);
     }
 
     /**
@@ -157,6 +184,7 @@ class Generator extends Component
             'strategyDetails' => $this->strategyDetails($generator),
             'estimatedBatchPrice' => $estimatedBatchPrice,
             'expectedValue' => $estimatedBatchPrice !== null ? $math->expectedValue($this->lottery, $this->numbersPerGame) : null,
+            'repeatMultiplier' => count($this->resolveTargetContests()),
         ]);
     }
 }

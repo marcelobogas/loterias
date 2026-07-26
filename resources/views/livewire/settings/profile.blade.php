@@ -1,8 +1,4 @@
 <div class="mx-auto max-w-lg space-y-6">
-    @if ($statusMessage)
-        <x-ui.status-banner>{{ $statusMessage }}</x-ui.status-banner>
-    @endif
-
     <x-ui.panel-card title="Perfil" subtitle="Atualize seu nome e e-mail.">
         <div class="mb-6 flex items-center gap-4">
             @if ($photo && $photo->isPreviewable())

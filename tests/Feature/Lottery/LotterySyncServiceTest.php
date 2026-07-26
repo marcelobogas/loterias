@@ -2,6 +2,7 @@
 
 use App\Contracts\LotteryResultsProviderContract;
 use App\DataTransferObjects\DrawData;
+use App\Exceptions\Lottery\LotteryApiUnavailableException;
 use App\Models\Lottery;
 use App\Models\LotteryDraw;
 use App\Services\Lottery\LotterySyncService;
@@ -84,4 +85,124 @@ test('a gap larger than the inline limit still syncs the most recent contests as
         ->and(LotteryDraw::where('lottery_id', $lottery->id)->where('contest_number', 3731)->exists())->toBeTrue()
         ->and(LotteryDraw::where('lottery_id', $lottery->id)->where('contest_number', 3721)->exists())->toBeTrue()
         ->and(LotteryDraw::where('lottery_id', $lottery->id)->where('contest_number', 101)->exists())->toBeFalse();
+});
+
+test('isUpToDate returns true when the local latest contest matches the live API', function () {
+    $lottery = Lottery::create([
+        'slug' => 'lotofacil',
+        'name' => 'Lotofácil',
+        'caixa_api_slug' => 'lotofacil',
+        'universe_size' => 25,
+        'numbers_drawn' => 15,
+        'min_numbers_per_game' => 15,
+        'max_numbers_per_game' => 20,
+        'is_active' => true,
+    ]);
+
+    LotteryDraw::create([
+        'lottery_id' => $lottery->id,
+        'contest_number' => 3731,
+        'draw_date' => '2026-07-09',
+        'source' => 'api',
+    ]);
+
+    $this->app->instance(LotteryResultsProviderContract::class, fakeLotteryProvider(makeFakeDraw(3731)));
+
+    expect(app(LotterySyncService::class)->isUpToDate($lottery))->toBeTrue();
+});
+
+test('isUpToDate returns false when the live API has a newer contest', function () {
+    $lottery = Lottery::create([
+        'slug' => 'lotofacil',
+        'name' => 'Lotofácil',
+        'caixa_api_slug' => 'lotofacil',
+        'universe_size' => 25,
+        'numbers_drawn' => 15,
+        'min_numbers_per_game' => 15,
+        'max_numbers_per_game' => 20,
+        'is_active' => true,
+    ]);
+
+    LotteryDraw::create([
+        'lottery_id' => $lottery->id,
+        'contest_number' => 3731,
+        'draw_date' => '2026-07-09',
+        'source' => 'api',
+    ]);
+
+    $this->app->instance(LotteryResultsProviderContract::class, fakeLotteryProvider(makeFakeDraw(3733)));
+
+    expect(app(LotterySyncService::class)->isUpToDate($lottery))->toBeFalse();
+});
+
+test('isUpToDate returns null when there are no local draws yet', function () {
+    $lottery = Lottery::create([
+        'slug' => 'lotofacil',
+        'name' => 'Lotofácil',
+        'caixa_api_slug' => 'lotofacil',
+        'universe_size' => 25,
+        'numbers_drawn' => 15,
+        'min_numbers_per_game' => 15,
+        'max_numbers_per_game' => 20,
+        'is_active' => true,
+    ]);
+
+    expect(app(LotterySyncService::class)->isUpToDate($lottery))->toBeNull();
+});
+
+test('isUpToDate returns null when the lottery has no caixa_api_slug', function () {
+    $lottery = Lottery::create([
+        'slug' => 'custom',
+        'name' => 'Loteria customizada',
+        'caixa_api_slug' => null,
+        'universe_size' => 25,
+        'numbers_drawn' => 15,
+        'min_numbers_per_game' => 15,
+        'max_numbers_per_game' => 20,
+        'is_active' => true,
+    ]);
+
+    LotteryDraw::create([
+        'lottery_id' => $lottery->id,
+        'contest_number' => 1,
+        'draw_date' => '2026-07-09',
+        'source' => 'api',
+    ]);
+
+    expect(app(LotterySyncService::class)->isUpToDate($lottery))->toBeNull();
+});
+
+test('isUpToDate returns null and does not throw when the Caixa API is unavailable', function () {
+    $lottery = Lottery::create([
+        'slug' => 'lotofacil',
+        'name' => 'Lotofácil',
+        'caixa_api_slug' => 'lotofacil',
+        'universe_size' => 25,
+        'numbers_drawn' => 15,
+        'min_numbers_per_game' => 15,
+        'max_numbers_per_game' => 20,
+        'is_active' => true,
+    ]);
+
+    LotteryDraw::create([
+        'lottery_id' => $lottery->id,
+        'contest_number' => 3731,
+        'draw_date' => '2026-07-09',
+        'source' => 'api',
+    ]);
+
+    $this->app->instance(LotteryResultsProviderContract::class, new class implements LotteryResultsProviderContract
+    {
+        public function fetchLatest(string $apiSlug): DrawData
+        {
+            throw new LotteryApiUnavailableException('down');
+        }
+
+        public function fetchByContest(string $apiSlug, int $contestNumber): DrawData
+        {
+            throw new LotteryApiUnavailableException('down');
+        }
+    });
+
+    expect(app(LotterySyncService::class)->isUpToDate($lottery))->toBeNull();
 });

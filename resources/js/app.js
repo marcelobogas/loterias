@@ -1,8 +1,48 @@
 import Chart from 'chart.js/auto';
+import Swal from 'sweetalert2';
+import 'sweetalert2/dist/sweetalert2.min.css';
 
 // Livewire ships and starts its own Alpine instance, so we hook into
 // `alpine:init` instead of importing/starting a second one.
 window.Chart = Chart;
+
+// Project-wide default for flash messages: any Livewire component dispatches
+// `flash` (message, and optionally type: 'success'|'error'|...) to show a toast.
+document.addEventListener('livewire:init', () => {
+    Livewire.on('flash', ({ message, type = 'success' }) => {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: type,
+            title: message,
+            background: '#0f172a',
+            color: '#e2e8f0',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+        });
+    });
+});
+
+// Project-wide default for destructive-action confirmations, replacing
+// wire:confirm (native browser confirm()). Used from Blade via
+// x-on:click="swalConfirm('...', () => $wire.someMethod())".
+window.swalConfirm = function (text, onConfirm) {
+    Swal.fire({
+        title: 'Tem certeza?',
+        text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, excluir',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#e11d48',
+        cancelButtonColor: '#334155',
+        background: '#0f172a',
+        color: '#e2e8f0',
+    }).then((result) => {
+        if (result.isConfirmed) onConfirm();
+    });
+};
 
 const chartTheme = {
     grid: 'rgba(148, 163, 184, 0.1)',

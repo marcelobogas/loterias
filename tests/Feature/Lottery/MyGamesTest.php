@@ -10,6 +10,7 @@ use App\Models\LotteryDraw;
 use App\Models\User;
 use Database\Seeders\LotterySeeder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Str;
 use Livewire\Livewire;
 
 test('checked games render matched numbers with the hit style and missed numbers with the default style', function () {
@@ -63,6 +64,59 @@ test('checked games render matched numbers with the hit style and missed numbers
     expect($hit[0] ?? null)->toContain('bg-emerald-500')
         ->and($hit[0] ?? null)->toContain('ring-emerald-300')
         ->and($miss[0] ?? null)->not->toContain('ring-emerald-300');
+});
+
+test('the list shows the target contest number for a saved game', function () {
+    $this->seed(LotterySeeder::class);
+    $lottery = Lottery::where('slug', 'lotofacil')->firstOrFail();
+    $user = User::factory()->create();
+
+    Game::create([
+        'user_id' => $user->id,
+        'lottery_id' => $lottery->id,
+        'numbers_chosen' => 15,
+        'price' => 3.5,
+        'strategy' => 'random',
+        'for_contest_number' => 3732,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(MyGames::class, ['lottery' => $lottery])
+        ->assertSee('Concurso 3732');
+});
+
+test('games sharing a repeat group show the Teimosinha badge and standalone games do not', function () {
+    $this->seed(LotterySeeder::class);
+    $lottery = Lottery::where('slug', 'lotofacil')->firstOrFail();
+    $user = User::factory()->create();
+
+    $repeatGroupId = (string) Str::uuid();
+
+    foreach ([3732, 3733, 3734, 3735] as $contest) {
+        Game::create([
+            'user_id' => $user->id,
+            'lottery_id' => $lottery->id,
+            'numbers_chosen' => 15,
+            'price' => 3.5,
+            'strategy' => 'random',
+            'repeat_group_id' => $repeatGroupId,
+            'for_contest_number' => $contest,
+        ]);
+    }
+
+    Game::create([
+        'user_id' => $user->id,
+        'lottery_id' => $lottery->id,
+        'numbers_chosen' => 15,
+        'price' => 3.5,
+        'strategy' => 'random',
+        'for_contest_number' => 3740,
+    ]);
+
+    Livewire::actingAs($user)
+        ->test(MyGames::class, ['lottery' => $lottery])
+        ->assertSee('Teimosinha · 4x')
+        ->assertSee('Concurso 3740');
 });
 
 test('a user can delete their own saved game', function () {
@@ -123,7 +177,7 @@ test('a user can delete all their saved games for a lottery at once', function (
     Livewire::actingAs($user)
         ->test(MyGames::class, ['lottery' => $lottery])
         ->call('deleteAllGames')
-        ->assertSet('checkStatusMessage', '3 jogo(s) excluído(s).');
+        ->assertDispatched('flash', message: '3 jogo(s) excluído(s).');
 
     $games->each(fn (Game $game) => $this->assertSoftDeleted('games', ['id' => $game->id]));
 });
@@ -173,7 +227,7 @@ test('checkNow syncs the latest contest on demand and checks pending games', fun
     Livewire::actingAs($user)
         ->test(MyGames::class, ['lottery' => $lottery])
         ->call('checkNow')
-        ->assertSet('checkStatusMessage', '1 jogo(s) conferido(s) agora.');
+        ->assertDispatched('flash', message: '1 jogo(s) conferido(s) agora.');
 
     expect(LotteryDraw::where('lottery_id', $lottery->id)->where('contest_number', 3731)->exists())->toBeTrue()
         ->and($game->refresh()->checked_at)->not->toBeNull();
