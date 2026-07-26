@@ -1,18 +1,16 @@
 @props([
     'name',
-    'label',
+    'label' => null,
     'type' => 'text',
     'hint' => null,
-    'compact' => false,
 ])
 
 <div>
-    <label for="{{ $name }}" class="block {{ $compact ? 'text-xs text-slate-400' : 'text-sm font-medium text-slate-300' }}">{{ $label }}</label>
+    @if ($label)
+        <label for="{{ $name }}" class="block text-sm font-medium text-slate-300">{{ $label }}</label>
+    @endif
     <input id="{{ $name }}" type="{{ $type }}"
-        {{ $attributes->class([
-            'mt-1 w-full rounded-lg border-white/10 bg-slate-800 px-3 py-2 text-slate-100 focus:border-emerald-500 focus:ring-emerald-500',
-            'px-2.5 py-1.5 text-sm' => $compact,
-        ]) }}>
+        {{ $attributes->class(['mt-1 h-10 w-full rounded-lg border-white/10 bg-slate-800 px-3 py-2 text-slate-100 focus:border-emerald-500 focus:ring-emerald-500']) }}>
     @if ($hint)
         <p class="mt-1 text-xs text-slate-500">{{ $hint }}</p>
     @endif

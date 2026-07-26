@@ -18,6 +18,9 @@
 
             <div class="flex flex-wrap items-center gap-3 text-sm sm:gap-4">
                 @auth
+                    @if (auth()->user()->is_admin)
+                        <a href="{{ route('admin.sync') }}" wire:navigate class="text-slate-300 hover:text-white">Admin</a>
+                    @endif
                     <a href="{{ route('profile.edit') }}" wire:navigate class="max-w-[10rem] truncate text-slate-300 hover:text-white">
                         {{ auth()->user()->name }}
                     </a>

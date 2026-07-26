@@ -5,8 +5,8 @@
         </x-slot:actions>
     </x-ui.page-header>
 
-    <input wire:model.live.debounce.400ms="search" type="search" placeholder="Buscar por número do concurso..."
-        class="w-full max-w-sm rounded-lg border-white/10 bg-slate-800 text-slate-100 placeholder:text-slate-500 focus:border-emerald-500 focus:ring-emerald-500">
+    <x-ui.text-input name="search" type="search" wire:model.live.debounce.400ms="search"
+        placeholder="Buscar por número do concurso..." class="max-w-sm placeholder:text-slate-500" />
 
     <div class="space-y-2">
         @forelse ($draws as $draw)

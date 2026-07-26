@@ -12,7 +12,7 @@
     </div>
 
     <div class="flex flex-wrap items-center gap-2">
-        <x-ui.button wire:click="checkNow" size="sm">
+        <x-ui.button wire:click="checkNow">
             <span wire:loading.remove wire:target="checkNow">Conferir agora</span>
             <span wire:loading wire:target="checkNow">Conferindo...</span>
         </x-ui.button>

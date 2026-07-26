@@ -76,10 +76,10 @@
 
                 @if ($strategy === 'balanced')
                     <div class="grid grid-cols-2 gap-2">
-                        <x-ui.text-input name="minSum" label="Soma mín." type="number" wire:model.live="minSum" compact />
-                        <x-ui.text-input name="maxSum" label="Soma máx." type="number" wire:model.live="maxSum" compact />
-                        <x-ui.text-input name="minEvens" label="Pares mín." type="number" wire:model.live="minEvens" compact />
-                        <x-ui.text-input name="maxEvens" label="Pares máx." type="number" wire:model.live="maxEvens" compact />
+                        <x-ui.text-input name="minSum" label="Soma mín." type="number" wire:model.live="minSum" />
+                        <x-ui.text-input name="maxSum" label="Soma máx." type="number" wire:model.live="maxSum" />
+                        <x-ui.text-input name="minEvens" label="Pares mín." type="number" wire:model.live="minEvens" />
+                        <x-ui.text-input name="maxEvens" label="Pares máx." type="number" wire:model.live="maxEvens" />
                     </div>
                 @endif
 

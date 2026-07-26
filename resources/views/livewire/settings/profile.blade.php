@@ -20,7 +20,7 @@
                         class="text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-1.5 file:text-xs file:text-slate-200 hover:file:bg-slate-700">
 
                     @if ($photo)
-                        <x-ui.button type="submit" size="sm">Enviar</x-ui.button>
+                        <x-ui.button type="submit">Enviar</x-ui.button>
                     @endif
 
                     @if (auth()->user()->avatar_path)
@@ -37,7 +37,7 @@
 
             <x-ui.text-input name="email" label="E-mail" type="email" wire:model="email" />
 
-            <x-ui.button type="submit" size="sm">Salvar</x-ui.button>
+            <x-ui.button type="submit">Salvar</x-ui.button>
         </form>
     </x-ui.panel-card>
 
@@ -49,7 +49,7 @@
 
             <x-ui.text-input name="password_confirmation" label="Confirmar nova senha" type="password" wire:model="password_confirmation" />
 
-            <x-ui.button type="submit" size="sm">Atualizar senha</x-ui.button>
+            <x-ui.button type="submit">Atualizar senha</x-ui.button>
         </form>
     </x-ui.panel-card>
 </div>

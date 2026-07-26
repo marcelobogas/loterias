@@ -7,3 +7,4 @@ Route::get('/', Home::class)->name('home');
 
 require __DIR__.'/auth.php';
 require __DIR__.'/lottery.php';
+require __DIR__.'/admin.php';
