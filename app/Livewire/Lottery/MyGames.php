@@ -72,7 +72,24 @@ class MyGames extends Component
     {
         $games = auth()->user()->games()
             ->where('lottery_id', $this->lottery->id)
+            ->where(function ($query) {
+                // Teimosinha saves one row per contest in the sequence; only
+                // show the earliest (the bet itself), not every occurrence.
+                $query->whereNull('repeat_group_id')
+                    ->orWhereIn('id', function ($subQuery) {
+                        $subQuery->selectRaw('MIN(id)')
+                            ->from('games')
+                            ->where('user_id', auth()->id())
+                            ->where('lottery_id', $this->lottery->id)
+                            ->whereNotNull('repeat_group_id')
+                            ->whereNull('deleted_at')
+                            ->groupBy('repeat_group_id');
+                    });
+            })
             ->withCount('repeatGroup')
+            ->withCount(['repeatGroup as repeat_group_checked_count' => fn ($query) => $query->whereHas('checks')])
+            ->withMin('repeatGroup', 'for_contest_number')
+            ->withMax('repeatGroup', 'for_contest_number')
             ->with(['numbers', 'checks.prizeTier', 'checks.draw.numbers'])
             ->latest()
             ->paginate(10);

@@ -46,12 +46,21 @@
                         <div class="text-right text-sm">
                             <p class="text-slate-400">
                                 {{ $game->created_at->format('d/m/Y H:i') }} · R$ {{ number_format($game->price, 2, ',', '.') }}
-                                @if ($game->for_contest_number)
+                                @if ($game->repeat_group_count > 1)
+                                    · Concursos {{ $game->repeat_group_min_for_contest_number }}–{{ $game->repeat_group_max_for_contest_number }}
+                                @elseif ($game->for_contest_number)
                                     · Concurso {{ $game->for_contest_number }}
                                 @endif
                             </p>
                             @if ($game->repeat_group_count > 1)
-                                <p class="text-xs text-slate-500">Teimosinha · {{ $game->repeat_group_count }}x</p>
+                                <p class="text-xs text-slate-500">
+                                    Teimosinha · {{ $game->repeat_group_count }}x
+                                    @if ($game->repeat_group_checked_count >= $game->repeat_group_count)
+                                        · sequência concluída
+                                    @else
+                                        · {{ $game->repeat_group_checked_count }} de {{ $game->repeat_group_count }} concursos conferidos
+                                    @endif
+                                </p>
                             @endif
                             @if ($lastCheck)
                                 <p class="font-medium {{ $lastCheck->prize_amount > 0 ? 'text-emerald-400' : 'text-slate-300' }}">
